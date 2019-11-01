@@ -47,6 +47,7 @@ if [ ! -d "$OSH" ]; then
   OH_MY_BASH_INSTALL=$(echo "$OH_MY_BASH_INSTALL" | sed -e "s/exec bash; source \\\$HOME\\/[.]bashrc//g")
   
   bash -c "$OH_MY_BASH_INSTALL"
+  assert $? "Failed to install oh-my-bash, aborting" || exit $?
 fi
 
 # Install script for bash configuration.

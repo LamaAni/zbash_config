@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
-runpath="$PWD/src/install"
-chmod +x "$runpath"
-"$runpath" "$@" || exit $?
+export LIB_PATH="$PWD/src"
+runpath="$LIB_PATH/install"
+cat "$runpath"
+source "$runpath" "$@" || exit $?

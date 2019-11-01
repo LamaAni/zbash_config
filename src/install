@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cur_path="$(dirname ${BASH_SOURCE[0]})"
+: ${LIB_PATH:="$(dirname ${BASH_SOURCE[0]})"}
 LOG_PREFEX=""
 
 function log() {
@@ -59,7 +59,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 OSH_CUSTOM_THEMES="$OSH_CUSTOM/themes"
-themes_src=$(realpath $cur_path/../themes)
+themes_src=$(realpath $LIB_PATH/../themes)
 
 log "Linking themes to $OSH_CUSTOM_THEMES"
 for d in $themes_src/*/; do
@@ -69,7 +69,7 @@ for d in $themes_src/*/; do
 done
 
 OSH_CUSTOM_ALIASES="$OSH_CUSTOM/aliases"
-aliases_src=$(realpath $cur_path/../aliases)
+aliases_src=$(realpath $LIB_PATH/../aliases)
 log "Linking aliases to $OSH_CUSTOM_ALIASES"
 for f in $aliases_src/*; do
   target_name="$OSH_CUSTOM_ALIASES/$(basename $f)"
@@ -78,7 +78,7 @@ for f in $aliases_src/*; do
 done
 
 log " -- Augmenting bashrc:"
-node "$cur_path/format_bashrc.js"
+node "$LIB_PATH/format_bashrc.js"
 assert $? "could not augment bashrc" || exit 1
 log "Done."
 

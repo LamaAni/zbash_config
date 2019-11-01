@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+cur_path="$(dirname ${BASH_SOURCE[0]})"
+LOG_PREFEX=""
+
+function log() {
+  echo "$LOG_PREFEX$1"
+}
+
+function get_yes_no() {
+  while true; do
+    read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[YyNn]$ ]]; then
+      log "Input invalid: you must specify y or n."
+    else
+      break
+    fi
+  done
+
+  export REPLY
+}
+
+function assert() {
+  if [ $1 -ne 0 ]; then
+    log "$2"
+    return $1
+  fi
+}
+
+: ${OSH:="~/.oh-my-bash"}
+: ${OSH_CUSTOM:="$OSH/custom"}
+
+OSH=$(realpath $OSH)
+OSH_CUSTOM=$(realpath $OSH_CUSTOM)
+
+echo $OSH
+
+# check for oh_my_bash
+if [ ! -d "$OSH" ]; then
+  log "The script requires the installation of oh_my_bash @ ~/.oh_my_bash, repo not found."
+  get_yes_no "Would you like to install oh-my-bash now? (requires git, curl) [y/n] "
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    log "Aborted"
+    exit 0
+  fi
+  log "Installing"
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+fi
+
+# Install script for bash configuration.
+
+log "This package installs the zlib/bash-config. This script will alter the current configuration of oh_my_bash, and augment .bashrc"
+get_yes_no "Are you sure?"
+
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  log "Aborted"
+  exit 0
+fi
+
+OSH_CUSTOM_THEMES="$OSH_CUSTOM/themes"
+themes_src=$(realpath $cur_path/../themes)
+
+log "Linking themes to $OSH_CUSTOM_THEMES"
+for d in $themes_src/*/; do
+  target_name="$OSH_CUSTOM_THEMES/$(basename $d)"
+  log "Linking $d -> $target_name"
+  ln -sf "$d" "$target_name"
+done
+
+OSH_CUSTOM_ALIASES="$OSH_CUSTOM/aliases"
+aliases_src=$(realpath $cur_path/../aliases)
+log "Linking aliases to $OSH_CUSTOM_ALIASES"
+for f in $aliases_src/*; do
+  target_name="$OSH_CUSTOM_ALIASES/$(basename $f)"
+  log "Linking $f -> $target_name"
+  ln -sf "$f" "$target_name"
+done
+
+log " -- Augmenting bashrc:"
+node "$cur_path/format_bashrc.js"
+assert $? "could not augment bashrc" || exit 1
+log "Done."

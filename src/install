@@ -27,13 +27,10 @@ function assert() {
   fi
 }
 
-: ${OSH:="~/.oh-my-bash"}
+: ${OSH:="$HOME/.oh-my-bash"}
 : ${OSH_CUSTOM:="$OSH/custom"}
 
-OSH=$(realpath $OSH)
-OSH_CUSTOM=$(realpath $OSH_CUSTOM)
-
-echo $OSH
+log "Looking for oh-my-bash @ $OSH"
 
 # check for oh_my_bash
 if [ ! -d "$OSH" ]; then
@@ -43,12 +40,16 @@ if [ ! -d "$OSH" ]; then
     log "Aborted"
     exit 0
   fi
-  log "Installing"
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+
+  log "Cloning remote repo.."
+  log "Installing oh-my-bash.. (skipping bash terimal - will be executed later)"
+  OH_MY_BASH_INSTALL=$(curl -fsSL "https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh")
+  OH_MY_BASH_INSTALL=$(echo "$OH_MY_BASH_INSTALL" | sed -e "s/exec bash; source \\\$HOME\\/[.]bashrc//g")
+  
+  bash -c "$OH_MY_BASH_INSTALL"
 fi
 
 # Install script for bash configuration.
-
 log "This package installs the zlib/bash-config. This script will alter the current configuration of oh_my_bash, and augment .bashrc"
 get_yes_no "Are you sure?"
 
@@ -80,3 +81,11 @@ log " -- Augmenting bashrc:"
 node "$cur_path/format_bashrc.js"
 assert $? "could not augment bashrc" || exit 1
 log "Done."
+
+VALIDATE_CHANGED=$(cat ~/.bashrc | grep "OSH_THEME")
+if [ "$VALIDATE_CHANGED" == 'OSH_THEME="font"' ]; then
+  assert 1 "ERROR: Failed to replace osh theme" || exit $?
+fi
+
+log "Entering a new bash termianl, settings updated."
+exec bash; source $HOME/.bashrc

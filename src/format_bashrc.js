@@ -7,41 +7,43 @@ const bash_rc_path = path.join(os.homedir(), '.bashrc')
 /** @type {string} */
 let bashrc_source = fs.readFileSync(bash_rc_path, 'utf-8')
 
-
-const theme_regex = /^(\s*OSH_THEME=")(.*)("\s*)$/g
-bashrc_source=bashrc_source.replace(theme_regex, "$1z-lib-bash$3")
+const aliases_regex = /^\s*aliases=\(\n(.*)\n\)\s*$/gm
+const theme_regex = /^(\s*OSH_THEME=)"(.*)"(\s*)$/gm
 
 // finding aliases.
 let aliases = new Set()
 
-const aliases_regex = /^\s*aliases=\(\n(.*)\n\)\s*$/gm
+// eslint-disable-next-line no-constant-condition
 while (true) {
   const m = aliases_regex.exec(bashrc_source)
   if (m == null) break
-  let found=m[1].replace(/\s+/g," ").split(' ').filter(v=>v.trim()!="").forEach(v=>{
-    aliases.add(v)
-  })
+  m[1]
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .filter(v => v.trim() != '')
+    .forEach(v => {
+      aliases.add(v)
+    })
 }
 
 // add as last
 aliases.add('z-lib-config')
 
-aliases=Array.from(aliases)
+aliases = Array.from(aliases)
 
-const aliases_string=`aliases=(
+const aliases_string = `aliases=(
   ${aliases.join('\n  ')}
 )`
 
 console.log(`New alias list: ${aliases.join(',')}`)
 
-bashrc_source=bashrc_source.replace(aliases_regex,aliases_string)
+bashrc_source = bashrc_source.replace(aliases_regex, aliases_string)
 
-if (bashrc_source.indexOf('export ZLIB_BASH_CONFIG="true"')==-1){
-  fs.copyFileSync(bash_rc_path,bash_rc_path+'.old.zlib')
+if (bashrc_source.indexOf('export ZLIB_BASH_CONFIG="true"') == -1) {
+  fs.copyFileSync(bash_rc_path, bash_rc_path + '.old.zlib')
+  bashrc_source = `${bashrc_source}\nexport ZLIB_BASH_CONFIG="true"\n`
 }
 
-bashrc_source=`${bashrc_source}\nexport ZLIB_BASH_CONFIG="true"`
+bashrc_source = bashrc_source.replace(theme_regex, '$1"z-lib-bash"$3')
 
-fs.writeFileSync(bash_rc_path,bashrc_source)
-
-
+fs.writeFileSync(bash_rc_path, bashrc_source)

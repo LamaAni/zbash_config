@@ -90,4 +90,7 @@ fi
 log "Entering a new bash termianl, settings updated."
 if [ "$1" != '--skip-bash' ]; then
   exec bash; source $HOME/.bashrc
+else
+  source $HOME/.bashrc
+  echo "Install ok. You might need to enter new bash to allow settings to be updated."
 fi

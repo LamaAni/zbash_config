@@ -88,4 +88,6 @@ if [ "$VALIDATE_CHANGED" == 'OSH_THEME="font"' ]; then
 fi
 
 log "Entering a new bash termianl, settings updated."
-exec bash; source $HOME/.bashrc
+if [ "$1" != '--skip-bash' ]; then
+  exec bash; source $HOME/.bashrc
+fi

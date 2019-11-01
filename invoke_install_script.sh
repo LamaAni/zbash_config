@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-echo "$PWD"
-ls -la
-"$PWD/src/install" "$@" || exit $?
+runpath="$PWD/src/install"
+chmod +x "$runpath"
+"$runpath" "$@" || exit $?

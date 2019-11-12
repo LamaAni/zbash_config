@@ -43,6 +43,13 @@ function git_clean_branch() {
   echo $clean_ref
 }
 
+
+function scm_prompt_char_info {
+  scm_prompt_char
+  echo -ne "${SCM_THEME_CHAR_PREFIX}${SCM_CHAR}${SCM_THEME_CHAR_SUFFIX}"
+  scm_prompt_info_common
+}
+
 # faster approach 
 function scm_prompt_info() {
   # scm

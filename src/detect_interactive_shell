@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-if [ -t 0 ] ; then
-  echo "interactive"
-  exit 0
-else
-  exit 1
-fi
+function detect(){
+  if [ -t 0 ] ; then
+    echo "interactive"
+    return 0
+  else
+    return 1
+  fi
+}
+
+detect

@@ -3,7 +3,7 @@
 LOG_PREFEX=""
 
 SHELL_IS_INTERACTIVE=0
-if [[ ! $- == *i* ]]
+if [[ ! $- == *i* ]]; then
    SHELL_IS_INTERACTIVE=1
 fi
 

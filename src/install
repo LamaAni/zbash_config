@@ -3,7 +3,8 @@
 LOG_PREFEX=""
 
 SHELL_IS_INTERACTIVE=0
-if [[ ! $- == *i* ]]; then
+"$LIB_PATH/detect_interactive_shell"
+if [ $? -eq 0 ]; then
    SHELL_IS_INTERACTIVE=1
 fi
 

@@ -2,11 +2,20 @@
 : ${LIB_PATH:="$(dirname ${BASH_SOURCE[0]})"}
 LOG_PREFEX=""
 
+SHELL_IS_INTERACTIVE=0
+if [[ ! $- == *i* ]]
+   SHELL_IS_INTERACTIVE=1
+fi
+
 function log() {
   echo "$LOG_PREFEX$1"
 }
 
 function get_yes_no() {
+  if [ $SHELL_IS_INTERACTIVE -eq 0 ]; then
+    export REPLY="y"
+    return 0
+  fi
   while true; do
     read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
     echo

@@ -26,6 +26,10 @@ THEME_CLOCK_FORMAT=${THEME_CLOCK_FORMAT:-"%H:%M"}
 VIRTUALENV_THEME_PROMPT_PREFIX='('
 VIRTUALENV_THEME_PROMPT_SUFFIX=') '
 
+: ${Z_BASH_PROMPT:=""}
+
+if [ -n "$Z_BASH_PROMPT" ]; then Z_BASH_PROMPT=" $Z_BASH_PROMPT "; fi
+
 function prompt_command() {
     # This needs to be first to save last command return code
     local RC="$?"
@@ -47,7 +51,7 @@ function prompt_command() {
 
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"
-    PS1="$(clock_prompt)${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(scm_prompt_char_info)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${bold_cyan}> ${normal}"
+    PS1="$(clock_prompt)${Z_BASH_PROMPT}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(scm_prompt_char_info)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${bold_cyan}> ${normal}"
 }
 
 safe_append_prompt_command prompt_command

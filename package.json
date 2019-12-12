@@ -1,6 +1,6 @@
 {
     "name": "zlib-bash-config",
-    "version": "0.5.9",
+    "version": "0.5.10",
     "description": "Auto configuration for bash, themes, aliases and others.",
     "main": "index.js",
     "scripts": {

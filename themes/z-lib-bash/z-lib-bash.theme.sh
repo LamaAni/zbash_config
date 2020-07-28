@@ -1,13 +1,40 @@
 #!/usr/bin/env bash
 
+type git.exe >>/dev/null
+if [ $? -eq 0 ]; then
+    ZLIB_BASH_HAS_GIT_EXE=1
+fi
+
+function git_use_exec() {
+    local USE_LIN_GIT=1
+    if [ $ZLIB_BASH_HAS_GIT_EXE -eq 1 ]; then
+        case "$PWD" in
+        /mnt/?/*)
+            echo "true"
+            return 0
+            ;;
+        esac
+    fi
+    echo "false"
+    return 1
+}
+
+function git_command_with_wsl() {
+    if [ "$(git_use_exec)" == "true" ]; then
+        exec git.exe "$@"
+    else
+        exec git "$@"
+    fi
+}
+
 # OVERRIDE: the git name resolve. (_ should be here)
 # This is added to address bash shell interpolation vulnerability described
 # here: https://github.com/njhartwell/pw3nage
-function git_clean_branch {
-  local unsafe_ref=$(command git symbolic-ref -q HEAD 2> /dev/null)
-  local stripped_ref=${unsafe_ref##refs/heads/}
-  local clean_ref=${stripped_ref//[^a-zA-Z0-9\/_]/-}
-  echo $clean_ref
+function git_clean_branch() {
+    local unsafe_ref=$(git_command_with_wsl symbolic-ref -q HEAD 2>/dev/null)
+    local stripped_ref=${unsafe_ref##refs/heads/}
+    local clean_ref=${stripped_ref//[^a-zA-Z0-9\/_]/-}
+    echo $clean_ref
 }
 
 SCM_NONE_CHAR=''

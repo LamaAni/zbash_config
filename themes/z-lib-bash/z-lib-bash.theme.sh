@@ -37,32 +37,45 @@ function git_clean_branch() {
     echo $clean_ref
 }
 
-function git_propmpt() {
+function git_prompt() {
     local ref
+    local is_git_repo=1
     local status
     local git_status_flags=('--porcelain')
-    SCM_STATE=${SCM_THEME_PROMPT_CLEAN}
-
-    if [[ "$(git_command_with_wsl config --get bash-it.hide-status)" != "1" ]]; then
-        # Get the branch reference
-        ref=$(git_clean_branch) ||
-            ref=$(git_command_with_wsl rev-parse --short HEAD 2>/dev/null) || return 0
-        SCM_BRANCH=${SCM_THEME_BRANCH_PREFIX}${ref}
-
-        # Get the status
-        [[ "${SCM_GIT_IGNORE_UNTRACKED}" == "true" ]] && git_status_flags+='-untracked-files=no'
+    ref="$(git_clean_branch)"||is_git_repo=0
+    if [ $is_git_repo -eq 1 ]; then
         status=$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)
 
-        if [[ -n ${status} ]]; then
-            SCM_DIRTY=1
-            SCM_STATE=${SCM_THEME_PROMPT_DIRTY}
+        if [ -n "$status" ]; then
+            status="$SCM_THEME_PROMPT_DIRTY"
+        else
+            status="$SCM_THEME_PROMPT_CLEAN"
         fi
 
-        # Output the git prompt
-        SCM_PREFIX=${SCM_THEME_PROMPT_PREFIX}
-        SCM_SUFFIX=${SCM_THEME_PROMPT_SUFFIX}
-        echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
+        echo -e "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
     fi
+
+    # SCM_STATE=${SCM_THEME_PROMPT_CLEAN}
+    # if [[ "$(git_command_with_wsl config --get bash-it.hide-status)" != "1" ]]; then
+    #     # Get the branch reference
+    #     ref=$(git_clean_branch) ||
+    #         ref=$(git_command_with_wsl rev-parse --short HEAD 2>/dev/null) || return 0
+    #     SCM_BRANCH=${SCM_THEME_BRANCH_PREFIX}${ref}
+
+    #     # Get the status
+    #     [[ "${SCM_GIT_IGNORE_UNTRACKED}" == "true" ]] && git_status_flags+='-untracked-files=no'
+    #     status=$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)
+
+    #     if [[ -n ${status} ]]; then
+    #         SCM_DIRTY=1
+    #         SCM_STATE=${SCM_THEME_PROMPT_DIRTY}
+    #     fi
+
+    #     # Output the git prompt
+    #     SCM_PREFIX=${SCM_THEME_PROMPT_PREFIX}
+    #     SCM_SUFFIX=${SCM_THEME_PROMPT_SUFFIX}
+    #     echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
+    # fi
 }
 
 SCM_NONE_CHAR=''
@@ -106,7 +119,7 @@ function prompt_command() {
 
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"
-    PS1="$(clock_prompt)${reset_color}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(git_propmpt)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
+    PS1="$(clock_prompt)${reset_color}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(git_prompt)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
 }
 
 safe_append_prompt_command prompt_command

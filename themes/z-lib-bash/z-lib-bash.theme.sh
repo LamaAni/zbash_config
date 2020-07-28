@@ -21,9 +21,9 @@ function git_use_exec() {
 
 function git_command_with_wsl() {
     if [ "$(git_use_exec)" == "true" ]; then
-        exec git.exe "$@"
+        git.exe "$@" || return $?
     else
-        exec git "$@"
+        git "$@" || return $?
     fi
 }
 
@@ -31,7 +31,8 @@ function git_command_with_wsl() {
 # This is added to address bash shell interpolation vulnerability described
 # here: https://github.com/njhartwell/pw3nage
 function git_clean_branch() {
-    local unsafe_ref=$(git_command_with_wsl symbolic-ref -q HEAD 2>/dev/null)
+    local unsafe_ref
+    unsafe_ref="$(git_command_with_wsl symbolic-ref -q HEAD 2>/dev/null)" || return $?
     local stripped_ref=${unsafe_ref##refs/heads/}
     local clean_ref=${stripped_ref//[^a-zA-Z0-9\/_]/-}
     echo $clean_ref
@@ -42,7 +43,7 @@ function git_prompt() {
     local is_git_repo=1
     local status
     local git_status_flags=('--porcelain')
-    ref="$(git_clean_branch)"||is_git_repo=0
+    ref="$(git_clean_branch)" || is_git_repo=0
     if [ $is_git_repo -eq 1 ]; then
         status=$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)
 
@@ -54,28 +55,6 @@ function git_prompt() {
 
         echo -e "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
     fi
-
-    # SCM_STATE=${SCM_THEME_PROMPT_CLEAN}
-    # if [[ "$(git_command_with_wsl config --get bash-it.hide-status)" != "1" ]]; then
-    #     # Get the branch reference
-    #     ref=$(git_clean_branch) ||
-    #         ref=$(git_command_with_wsl rev-parse --short HEAD 2>/dev/null) || return 0
-    #     SCM_BRANCH=${SCM_THEME_BRANCH_PREFIX}${ref}
-
-    #     # Get the status
-    #     [[ "${SCM_GIT_IGNORE_UNTRACKED}" == "true" ]] && git_status_flags+='-untracked-files=no'
-    #     status=$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)
-
-    #     if [[ -n ${status} ]]; then
-    #         SCM_DIRTY=1
-    #         SCM_STATE=${SCM_THEME_PROMPT_DIRTY}
-    #     fi
-
-    #     # Output the git prompt
-    #     SCM_PREFIX=${SCM_THEME_PROMPT_PREFIX}
-    #     SCM_SUFFIX=${SCM_THEME_PROMPT_SUFFIX}
-    #     echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
-    # fi
 }
 
 SCM_NONE_CHAR=''

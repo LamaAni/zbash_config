@@ -37,9 +37,37 @@ function git_clean_branch() {
     echo $clean_ref
 }
 
+function git_propmpt() {
+    local ref
+    local status
+    local git_status_flags=('--porcelain')
+    SCM_STATE=${SCM_THEME_PROMPT_CLEAN}
+
+    if [[ "$(git_command_with_wsl config --get bash-it.hide-status)" != "1" ]]; then
+        # Get the branch reference
+        ref=$(git_clean_branch) ||
+            ref=$(git_command_with_wsl rev-parse --short HEAD 2>/dev/null) || return 0
+        SCM_BRANCH=${SCM_THEME_BRANCH_PREFIX}${ref}
+
+        # Get the status
+        [[ "${SCM_GIT_IGNORE_UNTRACKED}" == "true" ]] && git_status_flags+='-untracked-files=no'
+        status=$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)
+
+        if [[ -n ${status} ]]; then
+            SCM_DIRTY=1
+            SCM_STATE=${SCM_THEME_PROMPT_DIRTY}
+        fi
+
+        # Output the git prompt
+        SCM_PREFIX=${SCM_THEME_PROMPT_PREFIX}
+        SCM_SUFFIX=${SCM_THEME_PROMPT_SUFFIX}
+        echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
+    fi
+}
+
 SCM_NONE_CHAR=''
 SCM_THEME_PROMPT_DIRTY=" ${red}✗"
-SCM_THEME_PROMPT_CLEAN=""
+SCM_THEME_PROMPT_CLEAN=" ${green}✓"
 SCM_THEME_PROMPT_PREFIX=" ${bold_green}"
 SCM_THEME_PROMPT_SUFFIX=" "
 SCM_GIT_SHOW_MINIMAL_INFO=true
@@ -78,7 +106,7 @@ function prompt_command() {
 
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"
-    PS1="$(clock_prompt)${reset_color}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(scm_prompt_char_info)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
+    PS1="$(clock_prompt)${reset_color}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(git_propmpt)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
 }
 
 safe_append_prompt_command prompt_command

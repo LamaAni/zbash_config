@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-type git.exe >>/dev/null
+command -v git.exe &>/dev/null
 if [ $? -eq 0 ]; then
     ZLIB_BASH_HAS_GIT_EXE=1
 fi

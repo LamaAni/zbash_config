@@ -6,7 +6,6 @@ if [ $? -eq 0 ]; then
 fi
 
 function git_use_exec() {
-    local USE_LIN_GIT=1
     if [ $ZLIB_BASH_HAS_GIT_EXE -eq 1 ]; then
         case "$PWD" in
         /mnt/?/*)
@@ -57,25 +56,28 @@ function git_prompt() {
     fi
 }
 
-SCM_NONE_CHAR=''
-SCM_THEME_PROMPT_DIRTY=" ${red}✗"
-SCM_THEME_PROMPT_CLEAN=" ${green}✓"
-SCM_THEME_PROMPT_PREFIX=" ${bold_green}"
-SCM_THEME_PROMPT_SUFFIX=" "
-SCM_GIT_SHOW_MINIMAL_INFO=true
+function check_show(){
+    local do_show="$1"
+    local what="$2"
+    if [ "$do_show" == "true" ]; then
+        echo "$what"
+    else
+        echo ""
+    fi
+}
 
-CLOCK_THEME_PROMPT_PREFIX=''
-CLOCK_THEME_PROMPT_SUFFIX=' '
-THEME_SHOW_CLOCK=true
-THEME_CLOCK_COLOR=${THEME_CLOCK_COLOR:-"$bold_blue"}
-THEME_CLOCK_FORMAT=${THEME_CLOCK_FORMAT:-"%H:%M"}
-
-VIRTUALENV_THEME_PROMPT_PREFIX='('
-VIRTUALENV_THEME_PROMPT_SUFFIX=') '
-
+: ${ZLIB_BASH_SHOW_CORE:="true"}
+: ${ZLIB_BASH_SHOW_PATH:="true"}
+: ${ZLIB_BASH_SHOW_HOST:="false"}
+: ${ZLIB_BASH_SHOW_USER:="true"}
 : ${Z_BASH_PROMPT:=""}
 
-if [ -n "$Z_BASH_PROMPT" ]; then Z_BASH_PROMPT="$Z_BASH_PROMPT "; fi
+SCM_THEME_PROMPT_DIRTY=" ${red}✗"
+SCM_THEME_PROMPT_CLEAN=" ${green}✓"    
+SCM_THEME_PROMPT_PREFIX=" ${bold_green}"
+SCM_THEME_PROMPT_SUFFIX=" "
+THEME_CLOCK_COLOR=${THEME_CLOCK_COLOR:-"$bold_blue"}
+THEME_CLOCK_FORMAT=${THEME_CLOCK_FORMAT:-"%H:%M"}
 
 function prompt_command() {
     # This needs to be first to save last command return code
@@ -96,9 +98,14 @@ function prompt_command() {
     # Append new history lines to history file
     history -a
 
+    local core_print=$(check_show $ZLIB_BASH_SHOW_CORE "$(clock_prompt)${reset_color}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(git_prompt)${ret_status}${bold_cyan}")
+    local path_print=$(check_show $ZLIB_BASH_SHOW_PATH "${PWD}")
+    local hostname_print=$(check_show $ZLIB_BASH_SHOW_HOST " ${very_gray}${hostname}")
+    local user_print=$(check_show $ZLIB_BASH_SHOW_USER " ${bold_orange}\u")
+
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"
-    PS1="$(clock_prompt)${reset_color}${reset_color}${virtual_env_color}${virtualenv}${reset_color}$(git_prompt)${ret_status}${bold_cyan} ${PWD}${very_gray} -- ${hostname}"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
+    PS1="${core_print}${path_print}${user_print}${hostname_print}"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
 }
 
 safe_append_prompt_command prompt_command

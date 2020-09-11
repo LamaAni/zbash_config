@@ -13,7 +13,7 @@ Go to your home directory and
 ### NPM latest version
 
 ```shell
-npm install zlib-bash-config
+npm install z-lib-bash-config
 ```
 
 ### Github master version

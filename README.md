@@ -10,12 +10,6 @@ Go to your home directory and
 
 (Notice no `-g` or `sudo`)
 
-### NPM latest version
-
-```shell
-npm install z-lib-bash-config
-```
-
 ### Github master version
 
 ```shell

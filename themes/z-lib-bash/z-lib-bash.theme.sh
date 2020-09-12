@@ -86,19 +86,22 @@ function check_show() {
     fi
 }
 
-: ${ZLIB_BASH_SHOW_CORE:="true"}
+: ${ZLIB_BASH_SHOW_GIT:="true"}
 : ${ZLIB_BASH_SHOW_PATH:="true"}
-: ${ZLIB_BASH_SHOW_HOST:="false"}
 : ${ZLIB_BASH_SHOW_USER:="true"}
 : ${ZLIB_BASH_SHOW_CLOCK:="true"}
+: ${ZLIB_BASH_SHOW_VENV:="true"}
+
+: ${ZLIB_BASH_SHOW_HOST:="false"}
+
 : ${Z_BASH_PROMPT:=""}
 
-SCM_THEME_PROMPT_DIRTY="${red}✗"
-SCM_THEME_PROMPT_CLEAN="${green}✓"
-SCM_THEME_PROMPT_PREFIX="${green}"
+SCM_THEME_PROMPT_DIRTY=" ${red}✗"
+SCM_THEME_PROMPT_CLEAN=" ${green}✓"
+SCM_THEME_PROMPT_PREFIX="${bold_green}"
 SCM_THEME_PROMPT_SUFFIX=""
-THEME_CLOCK_COLOR=${THEME_CLOCK_COLOR:-"$bold_blue"}
-THEME_CLOCK_FORMAT=${THEME_CLOCK_FORMAT:-"%H:%M"}
+THEME_CLOCK_COLOR=${THEME_CLOCK_COLOR:=""}
+THEME_CLOCK_FORMAT=${THEME_CLOCK_FORMAT:="%H:%M"}
 
 function prompt_command() {
     # This needs to be first to save last command return code
@@ -106,6 +109,7 @@ function prompt_command() {
 
     local very_gray="\e[38;5;237m"
     local virtual_env_color="\e[38;5;177m"
+    local virtualenv="$(virtualenv_prompt)"
 
     # Set return status color
     if [[ ${RC} == 0 ]]; then
@@ -117,24 +121,17 @@ function prompt_command() {
     # Append new history lines to history file
     history -a
 
-    echo "$clock_prompt"
-
-    git_prompt=$(trim "$git_prompt")
-    ret_status=$(trim "$ret_status")
-    virtualenv=$(trim "$virtualenv")
-    # echo "<$(join "|" "$git_prompt" "$clock_prompt" "$ret_status" "$virtualenv_prompt" "$virtual_env_color")>"
-
     local print_clock=$(check_show $ZLIB_BASH_SHOW_CLOCK "${bold_blue}$(clock_prompt)")
-    local print_venv=$(check_show $ZLIB_BASH_SHOW_CLOCK "${virtual_env_color}${virtualenv_prompt}")
-    local print_git=$(check_show $ZLIB_BASH_SHOW_CORE "$(git_prompt)${ret_status}")
+    local print_venv=$(check_show $ZLIB_BASH_SHOW_VENV "${virtual_env_color}${virtualenv}")
+    local print_git=$(check_show $ZLIB_BASH_SHOW_GIT "$(git_prompt)${ret_status}")
     local path_print=$(check_show $ZLIB_BASH_SHOW_PATH "${bold_cyan}${PWD}")
     local hostname_print=$(check_show $ZLIB_BASH_SHOW_HOST "${very_gray}\h")
     local user_print=$(check_show $ZLIB_BASH_SHOW_USER "${bold_orange}\u")
 
-    local print_args=("$print_clock" "$print_venv" "$print_git" "$core_print" "$path_print" "$hostname_print" "$user_print")
+    local print_args=("$print_clock" "$print_venv" "$print_git" "$core_print" "$path_print" "$user_print" "$hostname_print")
     local clean_args=()
     for p in "${print_args[@]}"; do
-        p=$(trim "$p")
+        p="$(trim "$p")"
         if [ "$p" == "" ]; then
             continue
         fi

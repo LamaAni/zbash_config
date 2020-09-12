@@ -76,11 +76,13 @@ function git_prompt() {
     fi
 }
 
-function check_show() {
+function create_show_param() {
     local do_show="$1"
     local what="$2"
-    if [ "$do_show" == "true" ]; then
-        echo "$what"
+    local prefex="$3"
+
+    if [ "$do_show" == "true" ] && [ "$(trim $what)" != "" ]; then
+        echo "$prefex$what"
     else
         echo ""
     fi
@@ -98,10 +100,10 @@ function check_show() {
 
 SCM_THEME_PROMPT_DIRTY=" ${red}✗"
 SCM_THEME_PROMPT_CLEAN=" ${green}✓"
-SCM_THEME_PROMPT_PREFIX="${bold_green}"
+SCM_THEME_PROMPT_PREFIX=""
 SCM_THEME_PROMPT_SUFFIX=""
-THEME_CLOCK_COLOR=${THEME_CLOCK_COLOR:=""}
-THEME_CLOCK_FORMAT=${THEME_CLOCK_FORMAT:="%H:%M"}
+: ${THEME_CLOCK_COLOR:=""}
+: ${THEME_CLOCK_FORMAT:="%H:%M"}
 
 function prompt_command() {
     # This needs to be first to save last command return code
@@ -113,7 +115,7 @@ function prompt_command() {
 
     # Set return status color
     if [[ ${RC} == 0 ]]; then
-        ret_status="${bold_green}"
+        ret_status="${bold_cyan}"
     else
         ret_status="${bold_red}"
     fi
@@ -121,14 +123,23 @@ function prompt_command() {
     # Append new history lines to history file
     history -a
 
-    local print_clock=$(check_show $ZLIB_BASH_SHOW_CLOCK "${bold_blue}$(clock_prompt)")
-    local print_venv=$(check_show $ZLIB_BASH_SHOW_VENV "${virtual_env_color}${virtualenv}")
-    local print_git=$(check_show $ZLIB_BASH_SHOW_GIT "$(git_prompt)${ret_status}")
-    local path_print=$(check_show $ZLIB_BASH_SHOW_PATH "${bold_cyan}${PWD}")
-    local hostname_print=$(check_show $ZLIB_BASH_SHOW_HOST "${very_gray}\h")
-    local user_print=$(check_show $ZLIB_BASH_SHOW_USER "${bold_orange}\u")
+    local print_clock=$(create_show_param $ZLIB_BASH_SHOW_CLOCK "$(date +"$THEME_CLOCK_FORMAT")" "${bold_blue}")
+    local print_venv=$(create_show_param $ZLIB_BASH_SHOW_VENV "${virtualenv}" "${virtual_env_color}")
+    local print_git=$(create_show_param $ZLIB_BASH_SHOW_GIT "$(git_prompt)" "${bold_green}")
+    local path_print=$(create_show_param $ZLIB_BASH_SHOW_PATH "${PWD}" "${bold_cyan}")
+    local hostname_print=$(create_show_param $ZLIB_BASH_SHOW_HOST "\h" "${very_gray}")
+    local user_print=$(create_show_param $ZLIB_BASH_SHOW_USER "\u" "${bold_orange}")
 
-    local print_args=("$print_clock" "$print_venv" "$print_git" "$core_print" "$path_print" "$user_print" "$hostname_print")
+    local print_args=(
+        "$print_clock"
+        "$print_venv"
+        "$print_git"
+        "$core_print"
+        "$path_print"
+        "$user_print"
+        "$hostname_print"
+    )
+
     local clean_args=()
     for p in "${print_args[@]}"; do
         p="$(trim "$p")"
@@ -142,7 +153,7 @@ function prompt_command() {
 
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"
-    PS1="$header_line"$'\n'"${Z_BASH_PROMPT}${bold_cyan}> ${normal}"
+    PS1="$header_line"$'\n'"${Z_BASH_PROMPT}${ret_status}> ${normal}"
 }
 
 safe_append_prompt_command prompt_command

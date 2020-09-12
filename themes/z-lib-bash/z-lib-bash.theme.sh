@@ -26,24 +26,24 @@ function git_command_with_wsl() {
     fi
 }
 
-function trim() {
+function trim_str() {
     echo "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
-function join() {
+function jon_str() {
     local with="$1"
     shift
     local arr=("$@")
-    local joined=""
+    local jon_stred=""
     local is_first=1
     for v in "${arr[@]}"; do
         if [ $is_first -ne 1 ]; then
-            joined="$joined$with"
+            jon_stred="$jon_stred$with"
         fi
         is_first=0
-        joined="$joined$v"
+        jon_stred="$jon_stred$v"
     done
-    echo "$joined"
+    echo "$jon_stred"
 }
 
 # OVERRIDE: the git name resolve. (_ should be here)
@@ -54,7 +54,7 @@ function git_clean_branch() {
     unsafe_ref="$(git_command_with_wsl symbolic-ref -q HEAD 2>/dev/null)" || return $?
     local stripped_ref=${unsafe_ref##refs/heads/}
     local clean_ref=${stripped_ref//[^a-zA-Z0-9\/_]/-}
-    echo $clean_ref
+    echo "$clean_ref"
 }
 
 function git_prompt() {
@@ -81,7 +81,7 @@ function create_show_param() {
     local what="$2"
     local prefex="$3"
 
-    if [ "$do_show" == "true" ] && [ "$(trim $what)" != "" ]; then
+    if [ "$do_show" == "true" ] && [ "$(trim_str $what)" != "" ]; then
         echo "$prefex$what"
     else
         echo ""
@@ -104,6 +104,8 @@ SCM_THEME_PROMPT_PREFIX=""
 SCM_THEME_PROMPT_SUFFIX=""
 : ${THEME_CLOCK_COLOR:=""}
 : ${THEME_CLOCK_FORMAT:="%H:%M"}
+
+export CLICOLOR=1
 
 function prompt_command() {
     # This needs to be first to save last command return code
@@ -142,14 +144,14 @@ function prompt_command() {
 
     local clean_args=()
     for p in "${print_args[@]}"; do
-        p="$(trim "$p")"
+        p="$(trim_str "$p")"
         if [ "$p" == "" ]; then
             continue
         fi
         clean_args+=("$p${reset_color}")
     done
 
-    local header_line=$(join " " "${clean_args[@]}")
+    local header_line=$(jon_str " " "${clean_args[@]}")
 
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"

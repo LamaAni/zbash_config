@@ -50,24 +50,29 @@ if [ ! -d "$OSH" ]; then
     log "Aborted"
     exit 0
   fi
-
-  log "Cloning remote repo.."
-  log "Installing oh-my-bash.. (skipping bash terimal - will be executed later)"
-  OH_MY_BASH_INSTALL=$(curl -fsSL "https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh")
-  OH_MY_BASH_INSTALL=$(echo "$OH_MY_BASH_INSTALL" | sed -e "s/exec bash; source \\\$HOME\\/[.]bashrc//g")
-
-  bash -c "$OH_MY_BASH_INSTALL"
-  assert $? "Failed to install oh-my-bash, aborting" || exit $?
+else
+  # Install script for bash configuration.
+  log "This package installs the zlib/bash-config. This script will alter the current configuration of oh_my_bash, and augment .bashrc"
+  get_yes_no "Are you sure?"
 fi
-
-# Install script for bash configuration.
-log "This package installs the zlib/bash-config. This script will alter the current configuration of oh_my_bash, and augment .bashrc"
-get_yes_no "Are you sure?"
 
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   log "Aborted"
   exit 0
 fi
+
+if [ -d "$OSH" ]; then
+  rm -Rf "$OSH"
+  assert $? "Failed to remove $OSH" || exit $?
+fi
+
+log "Cloning remote repo.."
+log "Installing oh-my-bash.. (skipping bash terimal - will be executed later)"
+OH_MY_BASH_INSTALL=$(curl -fsSL "https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh")
+OH_MY_BASH_INSTALL=$(echo "$OH_MY_BASH_INSTALL" | sed -e "s/exec bash; source \\\$HOME\\/[.]bashrc//g")
+
+bash -c "$OH_MY_BASH_INSTALL"
+assert $? "Failed to install oh-my-bash, aborting" || exit $?
 
 OSH_CUSTOM_THEMES="$OSH_CUSTOM/themes"
 themes_src=$(realpath $LIB_PATH/../themes)
@@ -89,15 +94,19 @@ for f in $aliases_src/*; do
 done
 
 BASHRC_PATH="$HOME/.bashrc"
-log " -- Augmenting bashrc @ $BASHRC_PATH :"
+log "Augmenting bashrc @ $BASHRC_PATH"
 
 function update_bashrc() {
-  local aliases=()
-  eval "$(sed -n '/aliases=(/{:start /)/!{N;b start};/.*/p}' $BASHRC_PATH)"
-  aliases+=(z-lib-config)
-  aliases="aliases=($(echo ${aliases[@]}))"
-  sed -i 's/^\s*aliases=\(\n.*\n\)\s/'"$aliases"'/g' "$BASHRC_PATH" &&
-    sed -i 's/^\s*OSH_THEME=.*$/export OSH_THEME="z-lib-bash"/g' "$BASHRC_PATH"
+  local call_command="
+# adding zlib aliases
+aliases+=(z-lib-config)
+
+source \$OSH/oh-my-bash.sh  
+"
+
+  sed -i 's/^\s*source .OSH.*$/# OSH command transffered to end/g' "$BASHRC_PATH" &&
+    sed -i 's/^\s*OSH_THEME=.*$/export OSH_THEME="z-lib-bash"/g' "$BASHRC_PATH" &&
+    echo "$call_command" >>"$BASHRC_PATH"
   assert $? "Failed to replace expressions"
 }
 

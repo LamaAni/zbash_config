@@ -19,9 +19,11 @@ function log() {
 }
 
 function assert() {
-  if [ $1 -ne 0 ]; then
+  local error_code="$1"
+  shift
+  if [ "$error_code" -ne 0 ]; then
     log_core ERROR "$@"
-    return "$1"
+    return "$error_code"
   fi
 }
 

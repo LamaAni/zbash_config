@@ -5,29 +5,39 @@ if [ $? -eq 0 ]; then
     ZLIB_BASH_HAS_GIT_EXE=1
 fi
 
+function read_from_pipe() { 
+    if [[ -p /proc/self/fd/0 ]]; then
+        printf "%s" "$(cat -)"
+        return 0
+    else
+        return 1
+    fi
+}
+
 function git_use_exec() {
     if [ $ZLIB_BASH_HAS_GIT_EXE -eq 1 ]; then
         case "$PWD" in
         /mnt/?/*)
-            echo "true"
+            printf "%s" "true"
             return 0
             ;;
         esac
     fi
-    echo "false"
+    printf "%s" "false"
     return 1
 }
 
 function git_command_with_wsl() {
     if [ "$(git_use_exec)" == "true" ]; then
-        git.exe "$@" || return $?
+        printf 'git.exe "$@" || exit $?' | bash -s "$@" || return $?
+        # bash -c 'git.exe "$@"' -- "$@" || return $?
     else
         git "$@" || return $?
     fi
 }
 
 function trim_str() {
-    echo "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+     printf "%s" "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
 function jon_str() {
@@ -43,7 +53,7 @@ function jon_str() {
         is_first=0
         jon_stred="$jon_stred$v"
     done
-    echo "$jon_stred"
+    printf "%s" "$jon_stred"
 }
 
 # OVERRIDE: the git name resolve. (_ should be here)
@@ -54,7 +64,7 @@ function git_clean_branch() {
     unsafe_ref="$(git_command_with_wsl symbolic-ref -q HEAD 2>/dev/null)" || return $?
     local stripped_ref=${unsafe_ref##refs/heads/}
     local clean_ref=${stripped_ref//[^a-zA-Z0-9\/_]/-}
-    echo "$clean_ref"
+    printf "%s" "$clean_ref"
 }
 
 function git_prompt() {
@@ -64,7 +74,7 @@ function git_prompt() {
     local git_status_flags=('--porcelain')
     ref="$(git_clean_branch)" || is_git_repo=0
     if [ $is_git_repo -eq 1 ]; then
-        status=$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)
+        status="$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)"
 
         if [ -n "$status" ]; then
             status="$SCM_THEME_PROMPT_DIRTY"
@@ -72,7 +82,7 @@ function git_prompt() {
             status="$SCM_THEME_PROMPT_CLEAN"
         fi
 
-        echo -e "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
+        printf "%s" "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
     fi
 }
 
@@ -82,9 +92,9 @@ function create_show_param() {
     local prefex="$3"
 
     if [ "$do_show" == "true" ] && [ "$(trim_str $what)" != "" ]; then
-        echo "$prefex$what"
+        printf "%s" "$prefex$what"
     else
-        echo ""
+        printf ""
     fi
 }
 
@@ -113,7 +123,6 @@ function prompt_command() {
 
     local very_gray="\e[38;5;237m"
     local virtual_env_color="\e[38;5;177m"
-    local virtualenv="$(virtualenv_prompt)"
 
     # Set return status color
     if [[ ${RC} == 0 ]]; then
@@ -125,12 +134,12 @@ function prompt_command() {
     # Append new history lines to history file
     history -a
 
-    local print_clock=$(create_show_param $ZLIB_BASH_SHOW_CLOCK "$(date +"$THEME_CLOCK_FORMAT")" "${bold_blue}")
-    local print_venv=$(create_show_param $ZLIB_BASH_SHOW_VENV "${virtualenv}" "${virtual_env_color}")
-    local print_git=$(create_show_param $ZLIB_BASH_SHOW_GIT "$(git_prompt)" "${bold_green}")
-    local path_print=$(create_show_param $ZLIB_BASH_SHOW_PATH "${PWD}" "${bold_cyan}")
-    local hostname_print=$(create_show_param $ZLIB_BASH_SHOW_HOST "\h" "${very_gray}")
-    local user_print=$(create_show_param $ZLIB_BASH_SHOW_USER "\u" "${bold_orange}")
+    local print_clock="$(create_show_param $ZLIB_BASH_SHOW_CLOCK "$(date +"$THEME_CLOCK_FORMAT")" "${bold_blue}")"
+    local path_print="$(create_show_param $ZLIB_BASH_SHOW_PATH "${PWD}" "${bold_cyan}")"
+    local hostname_print="$(create_show_param $ZLIB_BASH_SHOW_HOST "\h" "${very_gray}")"
+    local user_print="$(create_show_param $ZLIB_BASH_SHOW_USER "\u" "${bold_orange}")"
+    local print_git="$(create_show_param $ZLIB_BASH_SHOW_GIT "$(git_prompt)" "${bold_green}")"
+    local print_venv="$(create_show_param $ZLIB_BASH_SHOW_VENV "$(virtualenv_prompt)" "${virtual_env_color}")"
 
     local print_args=(
         "$print_clock"
@@ -151,7 +160,7 @@ function prompt_command() {
         clean_args+=("$p${reset_color}")
     done
 
-    local header_line=$(jon_str " " "${clean_args[@]}")
+    local header_line="$(jon_str " " "${clean_args[@]}")"
 
     # original
     # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"

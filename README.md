@@ -12,6 +12,9 @@ Go to your home directory and
 
 ### Github master version
 
+#### Requires:
+1. Git
+
 ```shell
 curl -sL https://raw.githubusercontent.com/LamaAni/zlib-bash-config/master/src/git_install | bash
 ```

@@ -7,6 +7,28 @@ function assert() {
   fi
 }
 
+function log() {
+  echo "$LOG_PREFEX$1"
+}
+
+function get_yes_no() {
+  if [ $SHELL_IS_INTERACTIVE -eq 0 ]; then
+    export REPLY="y"
+    return 0
+  fi
+  while true; do
+    read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[YyNn]$ ]]; then
+      log "Input invalid: you must specify y or n."
+    else
+      break
+    fi
+  done
+
+  export REPLY
+}
+
 : "${ZLIB_BRANCH:="master"}"
 : "${ZLIB_LOCATION:="$HOME/.zlib_bash_config"}"
 
@@ -37,6 +59,17 @@ ARGS:
   esac
   shift
 done
+
+# check for oh_my_bash
+if [ -d "$ZLIB_LOCATION" ]; then
+  get_yes_no "The location $ZLIB_LOCATION exist, would you like to overwrite (all will be deleted)? [y/n] "
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    log "Aborted"
+    exit 0
+  fi
+  rm -Rf "$ZLIB_LOCATION"
+  assert $? "Failed to remove existing location" || exit $?
+fi
 
 type git &>/dev/null
 assert $? "Git must be installed" || exit $?

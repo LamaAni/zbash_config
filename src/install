@@ -46,10 +46,6 @@ log "Looking for oh-my-bash @ $OSH"
 if [ ! -d "$OSH" ]; then
   log "The script requires the installation of oh_my_bash @ ~/.oh_my_bash, repo not found."
   get_yes_no "Would you like to install oh-my-bash now? (requires git, curl) [y/n] "
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log "Aborted"
-    exit 0
-  fi
 else
   # Install script for bash configuration.
   log "This package installs the zlib/bash-config. This script will alter the current configuration of oh_my_bash, and augment .bashrc"

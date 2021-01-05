@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 
-function assert() {
-  if [ $1 -ne 0 ]; then
-    log "$2"
-    return $1
-  fi
+function log_core() {
+  local prefex="$1"
+  shift
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')]][$prefex]" "$@"
 }
 
 function log() {
-  echo "$LOG_PREFEX$1"
+  log_core INFO "$@"
+}
+
+function assert() {
+  if [ $1 -ne 0 ]; then
+    log_core ERROR "$@"
+    return "$1"
+  fi
 }
 
 function get_yes_no() {

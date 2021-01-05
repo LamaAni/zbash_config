@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+function assert() {
+  if [ $1 -ne 0 ]; then
+    log "$2"
+    return $1
+  fi
+}
+
+: "${ZLIB_BRANCH:="master"}"
+: "${ZLIB_LOCATION:="$HOME/.zlib_bash_config"}"
+
+while [ "$#" -gt 0 ]; do
+  case $1 in
+  -h | --help)
+    echo "
+Installs the zlib-bash-config, by cloning the repo:
+ARGS:
+  --branch | -b   The branch to clone from (defaults to master)
+  --location | -l The folder to install to (defaults to $ZLIB_LOCATION)
+"
+    ;;
+  -b | --branch)
+    shift
+    ZLIB_BRANCH="$1"
+    ;;
+  --location | -l)
+    shift
+    ZLIB_LOCATION="$1"
+    ;;
+  -*)
+    assert 2 "Unknown option $1" || exit $?
+    ;;
+  *)
+    assert 2 "Unsupported input $1" || exit $?
+    ;;
+  esac
+  shift
+done
+
+type git &>/dev/null
+assert $? "Git must be installed" || exit $?
+
+git clone "https://github.com/LamaAni/zlib-bash-config.git" "$ZLIB_LOCATION" --branch "$ZLIB_BRANCH"
+assert $? "Failed to clone repository" || exit $?
+
+"$ZLIB_LOCATION/src/install"
+assert $? "Failed to install" || exit $?

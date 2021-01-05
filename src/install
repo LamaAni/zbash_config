@@ -5,7 +5,7 @@ LOG_PREFEX=""
 SHELL_IS_INTERACTIVE=0
 "$LIB_PATH/detect_interactive_shell"
 if [ $? -eq 0 ]; then
-   SHELL_IS_INTERACTIVE=1
+  SHELL_IS_INTERACTIVE=1
 fi
 
 function log() {
@@ -55,7 +55,7 @@ if [ ! -d "$OSH" ]; then
   log "Installing oh-my-bash.. (skipping bash terimal - will be executed later)"
   OH_MY_BASH_INSTALL=$(curl -fsSL "https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh")
   OH_MY_BASH_INSTALL=$(echo "$OH_MY_BASH_INSTALL" | sed -e "s/exec bash; source \\\$HOME\\/[.]bashrc//g")
-  
+
   bash -c "$OH_MY_BASH_INSTALL"
   assert $? "Failed to install oh-my-bash, aborting" || exit $?
 fi
@@ -88,8 +88,20 @@ for f in $aliases_src/*; do
   ln -sf "$f" "$target_name"
 done
 
-log " -- Augmenting bashrc:"
-node "$LIB_PATH/format_bashrc.js"
+BASHRC_PATH="$HOME/.bashrc"
+log " -- Augmenting bashrc @ $BASHRC_PATH :"
+
+function update_bashrc() {
+  local aliases=()
+  eval "$(sed -n '/aliases=(/{:start /)/!{N;b start};/.*/p}' $BASHRC_PATH)"
+  aliases+=(z-lib-config)
+  aliases="aliases=($(echo ${aliases[@]}))"
+  sed -i 's/^\s*aliases=\(\n.*\n\)\s/'"$aliases"'/g' "$BASHRC_PATH" &&
+    sed -i 's/^\s*OSH_THEME=.*$/export OSH_THEME="z-lib-bash"/g' "$BASHRC_PATH"
+  assert $? "Failed to replace expressions"
+}
+
+update_bashrc
 assert $? "could not augment bashrc" || exit 1
 log "Done."
 
@@ -100,7 +112,8 @@ fi
 
 log "Entering a new bash termianl, settings updated."
 if [ "$1" != '--skip-bash' ]; then
-  exec bash; source $HOME/.bashrc
+  exec bash
+  source $HOME/.bashrc
 else
   source $HOME/.bashrc
   echo "-----------------------------------"

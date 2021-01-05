@@ -124,5 +124,6 @@ if [ "$VALIDATE_CHANGED" == 'OSH_THEME="font"' ]; then
   assert 1 "ERROR: Failed to replace osh theme" || exit $?
 fi
 
-log "Updating the bash terminal"
-source "$BASHRC_PATH"
+log "Complete. Enter a new bash terminal to see the result using:
+$> bash
+"

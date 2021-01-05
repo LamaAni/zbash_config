@@ -94,3 +94,4 @@ git clone "https://github.com/LamaAni/zlib-bash-config.git" "$ZLIB_LOCATION" --b
 assert $? "Failed to clone repository" || exit $?
 
 "$ZLIB_LOCATION/src/install"
+assert $? "Failed to install" || exit $?

@@ -6,11 +6,7 @@ Feel free to try it out :)
 
 # Install
 
-Go to your home directory and
-
-(Notice no `-g` or `sudo`)
-
-### Github master version
+The following script install the master version.
 
 #### Requires:
 1. Git

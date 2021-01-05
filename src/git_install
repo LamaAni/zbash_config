@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-: "${LIB_PATH:="$(dirname "${BASH_SOURCE[0]}")"}"
+set -e
 
 SHELL_IS_INTERACTIVE=0
-"$LIB_PATH/detect_interactive_shell"
-if [ $? -eq 0 ]; then
+if [ -t 0 ]; then
   SHELL_IS_INTERACTIVE=1
 fi
 
@@ -78,6 +77,12 @@ ARGS:
   esac
   shift
 done
+
+if [ $SHELL_IS_INTERACTIVE -ne 0 ]; then
+  log "Working in non interactive shell"
+else
+  log "Working in interactive shell"
+fi
 
 # check for oh_my_bash
 if [ -d "$ZLIB_LOCATION" ]; then

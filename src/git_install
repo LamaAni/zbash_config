@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-: ${LIB_PATH:="$(dirname ${BASH_SOURCE[0]})"}
+: "${LIB_PATH:="$(dirname ${BASH_SOURCE[0]})"}"
 
 SHELL_IS_INTERACTIVE=0
 "$LIB_PATH/detect_interactive_shell"

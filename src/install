@@ -36,13 +36,17 @@ function get_yes_no() {
     read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[YyNn]$ ]]; then
-      log "Input invalid: you must specify y or n."
+      assert 3 "Input invalid: you must specify y or n."
+      continue
     else
-      break
+      export REPLY
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        return 0
+      else
+        return 1
+      fi
     fi
   done
-
-  export REPLY
 }
 
 : ${OSH:="$HOME/.oh-my-bash"}
@@ -60,10 +64,7 @@ else
   get_yes_no "Are you sure?"
 fi
 
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  log "Aborted"
-  exit 0
-fi
+assert $? "Aborted" || exit $?
 
 if [ -d "$OSH" ]; then
   rm -Rf "$OSH"

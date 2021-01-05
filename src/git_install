@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+SHELL_IS_INTERACTIVE=0
+"$LIB_PATH/detect_interactive_shell"
+if [ $? -eq 0 ]; then
+  SHELL_IS_INTERACTIVE=1
+fi
+
 function log_core() {
   local prefex="$1"
   shift
@@ -28,13 +34,17 @@ function get_yes_no() {
     read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[YyNn]$ ]]; then
-      log "Input invalid: you must specify y or n."
+      assert 3 "Input invalid: you must specify y or n."
+      continue
     else
-      break
+      export REPLY
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        return 0
+      else
+        return 1
+      fi
     fi
   done
-
-  export REPLY
 }
 
 : "${ZLIB_BRANCH:="master"}"
@@ -70,11 +80,9 @@ done
 
 # check for oh_my_bash
 if [ -d "$ZLIB_LOCATION" ]; then
-  get_yes_no "The location $ZLIB_LOCATION exist, would you like to overwrite (all will be deleted)? [y/n] "
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log "Aborted"
-    exit 0
-  fi
+  get_yes_no "The location $ZLIB_LOCATION exist, would you like to overwrite (all will be deleted)? [y/n]"
+  assert $? "Aborted" || exit $?
+
   rm -Rf "$ZLIB_LOCATION"
   assert $? "Failed to remove existing location" || exit $?
 fi

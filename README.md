@@ -13,5 +13,5 @@ Go to your home directory and
 ### Github master version
 
 ```shell
-npm install https://github.com/LamaAni/zlib-bash-config.git
+curl -sL https://raw.githubusercontent.com/LamaAni/zlib-bash-config/master/src/git_install | bash
 ```

@@ -4,6 +4,9 @@ source "$SCRIPT_PATH/common.sh"
 
 : "${CYCLE_COUNT:=100}"
 
+
+full_status_result="$(git_command_with_wsl status --porcelain -b)"
+
 function assert(){
     local code="$1"
     shift
@@ -21,16 +24,22 @@ function test_method_call(){
     done
 }
 
+
+echo "get_lines_in_string:"
+time test_method_call 'get_lines_in_string "$full_status_result"'
+assert $? "Test failed" || exit $?
+
+
 echo "git:"
-time test_method_call "git status"
+time test_method_call "git status --porcelain -b"
 assert $? "Test failed" || exit $?
 
 echo "git_command_with_wsl:"
-time test_method_call "git_command_with_wsl status"
+time test_method_call "git_command_with_wsl status --porcelain -b"
 assert $? "Test failed" || exit $?
 
 echo
-echo "git_prompt:"
-time test_method_call "git_prompt"
+echo "get_git_info:"
+time test_method_call "get_git_info"
 assert $? "Test failed" || exit $?
 

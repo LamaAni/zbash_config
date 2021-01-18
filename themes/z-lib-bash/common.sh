@@ -74,28 +74,47 @@ function git_clean_branch() {
     printf "%s" "$clean_ref"
 }
 
+function get_lines_in_string(){
+    local txt="$1"
+    # txt="${txt/ /}"
+    # echo "$txt"
+    IFS=$'\n'
+    local all_lines=($txt)
+    local count="${#all_lines[@]}"
+    echo "$count"
+}
+
 function get_git_info(){
-    local info=$(git_command_with_wsl git status --porcelain -b) || return $?
-    local branch="$(echo "$info"|head -n 1| grep -Eo "[a-zA-Z0-9].*[.]{3}")"
-    branch="${branch::-3}"
-    echo "$branch"
+    local info=""
+    info="$(git_command_with_wsl status --porcelain -b)" || return $?
+
+    local branch_regexp="## ([a-zA-Z0-9].*?)[.]{3}"
+    [[ "$info" =~ $branch_regexp ]]
+    local ref="${BASH_REMATCH[1]}"
+    local info_lines="$(get_lines_in_string "$info")"
+    # local info_lines="$(echo "$info" | wc -l)"
+    # local ref="$(echo "$info" | head -n 1 | grep -Eo "[a-zA-Z0-9].*[.]{3}")"
+    # ref="${ref::-3}"
+    local status="clear"
+    if [ "$info_lines" -gt 1 ]; then
+        status="pending"
+    fi
+    printf "%s %s" "$ref" "$status"
 }
 
 function git_prompt() {
-    local ref
-    local is_git_repo=1
-    local status
-    local git_status_flags=('--porcelain')
-    ref="$(git_clean_branch)" || is_git_repo=0
-    if [ $is_git_repo -eq 1 ]; then
-        status="$(git_command_with_wsl status ${git_status_flags} 2>/dev/null | tail -n1)"
-
-        if [ -n "$status" ]; then
-            status="$SCM_THEME_PROMPT_DIRTY"
-        else
-            status="$SCM_THEME_PROMPT_CLEAN"
-        fi
-
-        printf "%s" "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
+    local info=($(get_git_info))
+    if [ $? -ne 0 ]; then
+        return
     fi
+    local ref="${info[0]}"
+    local status="${info[1]}"
+
+    if [ "$status" == "pending" ]; then
+        status="$SCM_THEME_PROMPT_DIRTY"
+    else
+        status="$SCM_THEME_PROMPT_CLEAN"
+    fi
+
+    printf "%s" "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
 }

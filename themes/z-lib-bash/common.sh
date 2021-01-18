@@ -74,6 +74,13 @@ function git_clean_branch() {
     printf "%s" "$clean_ref"
 }
 
+function get_git_info(){
+    local info=$(git_command_with_wsl git status --porcelain -b) || return $?
+    local branch="$(echo "$info"|head -n 1| grep -Eo "[a-zA-Z0-9].*[.]{3}")"
+    branch="${branch::-3}"
+    echo "$branch"
+}
+
 function git_prompt() {
     local ref
     local is_git_repo=1

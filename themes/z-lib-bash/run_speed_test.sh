@@ -1,8 +1,9 @@
-#!/usr/bin
+#!/bin/bash
 SCRIPT_PATH=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 source "$SCRIPT_PATH/common.sh"
+source "$SCRIPT_PATH/z-lib-bash.theme.sh"
 
-: "${CYCLE_COUNT:=100}"
+: "${CYCLE_COUNT:=1}"
 
 
 full_status_result="$(git_command_with_wsl status --porcelain -b)"
@@ -30,6 +31,11 @@ time test_method_call 'get_lines_in_string "$full_status_result"'
 assert $? "Test failed" || exit $?
 
 
+echo "parse_git_info:"
+time test_method_call 'parse_git_info "$full_status_result"'
+assert $? "Test failed" || exit $?
+
+
 echo "git:"
 time test_method_call "git status --porcelain -b"
 assert $? "Test failed" || exit $?
@@ -43,3 +49,12 @@ echo "get_git_info:"
 time test_method_call "get_git_info"
 assert $? "Test failed" || exit $?
 
+echo
+echo "git_prompt:"
+time test_method_call "git_prompt"
+assert $? "Test failed" || exit $?
+
+echo
+echo "prompt_command:"
+time test_method_call "prompt_command"
+assert $? "Test failed" || exit $?

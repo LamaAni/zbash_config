@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
 SCRIPT_PATH=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 source "$SCRIPT_PATH/common.sh"
 
@@ -37,7 +38,7 @@ export CLICOLOR=1
 function prompt_command() {
     # This needs to be first to save last command return code
     local RC="$?"
-
+    local linesep=$'\n'
     local very_gray="\e[38;5;237m"
     local virtual_env_color="\e[38;5;177m"
 
@@ -51,6 +52,7 @@ function prompt_command() {
     # Append new history lines to history file
     history -a
 
+    
     local print_clock="$(create_show_param $ZLIB_BASH_SHOW_CLOCK "$(date +"$THEME_CLOCK_FORMAT")" "${bold_blue}")"
     local path_print="$(create_show_param $ZLIB_BASH_SHOW_PATH "${PWD}" "${bold_cyan}")"
     local hostname_print="$(create_show_param $ZLIB_BASH_SHOW_HOST "\h" "${very_gray}")"
@@ -68,20 +70,16 @@ function prompt_command() {
         "$hostname_print"
     )
 
-    local clean_args=()
-    for p in "${print_args[@]}"; do
-        p="$(trim_str "$p")"
-        if [ "$p" == "" ]; then
-            continue
-        fi
-        clean_args+=("$p${reset_color}")
-    done
+    # local clean_args=()
+    # for p in "${print_args[@]}"; do
+    #     p="$(trim_str "$p")"
+    #     if [ "$p" == "" ]; then
+    #         continue
+    #     fi
+    #     clean_args+=("$p${reset_color}")
+    # done
 
-    local header_line="$(jon_str " " "${clean_args[@]}")"
-
-    # original
-    # PS1="$(clock_prompt)${virtualenv}${hostname} ${bold_cyan}\W $(scm_prompt_char_info)${ret_status}→ ${normal}"
-    PS1="$header_line"$'\n'"${Z_BASH_PROMPT}${ret_status}> ${normal}"
+    PS1="$(join_non_empty_str " " "${print_args[@]}")$linesep${Z_BASH_PROMPT}${ret_status}> ${normal}"
 }
 
 safe_append_prompt_command prompt_command

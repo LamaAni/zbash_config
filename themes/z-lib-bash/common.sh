@@ -105,16 +105,18 @@ function parse_git_info() {
 
 function get_git_info() {
     local info=""
-    info="$(git_command_with_wsl status --porcelain -b)" || return $?
+    info="$(git_command_with_wsl status --porcelain -b 2>&1)" || return 2
 
     parse_git_info "$info"
 }
 
 function git_prompt() {
-    local info=($(get_git_info))
-    if [ $? -ne 0 ]; then
-        return
+    local info=""
+    info="$(get_git_info)"
+    if [ "$?" -ne 0 ]; then
+        return 0
     fi
+    info=($info)
     local ref="${info[0]}"
     local status="${info[1]}"
 

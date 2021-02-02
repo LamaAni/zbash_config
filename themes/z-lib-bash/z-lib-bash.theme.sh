@@ -3,7 +3,6 @@
 SCRIPT_PATH=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 source "$SCRIPT_PATH/common.sh"
 
-
 function create_show_param() {
     local do_show="$1"
     local what="$2"
@@ -21,6 +20,7 @@ function create_show_param() {
 : ${ZLIB_BASH_SHOW_USER:="true"}
 : ${ZLIB_BASH_SHOW_CLOCK:="true"}
 : ${ZLIB_BASH_SHOW_VENV:="true"}
+: ${ZLIB_BASH_SHOW_MOUNT_DRIVES="true"}
 
 : ${ZLIB_BASH_SHOW_HOST:="false"}
 
@@ -52,7 +52,6 @@ function prompt_command() {
     # Append new history lines to history file
     history -a
 
-    
     local print_clock="$(create_show_param $ZLIB_BASH_SHOW_CLOCK "$(date +"$THEME_CLOCK_FORMAT")" "${bold_blue}")"
     local path_print="$(create_show_param $ZLIB_BASH_SHOW_PATH "${PWD}" "${bold_cyan}")"
     local hostname_print="$(create_show_param $ZLIB_BASH_SHOW_HOST "\h" "${very_gray}")"
@@ -70,16 +69,11 @@ function prompt_command() {
         "$hostname_print"
     )
 
-    # local clean_args=()
-    # for p in "${print_args[@]}"; do
-    #     p="$(trim_str "$p")"
-    #     if [ "$p" == "" ]; then
-    #         continue
-    #     fi
-    #     clean_args+=("$p${reset_color}")
-    # done
-
     PS1="$(join_non_empty_str " " "${print_args[@]}")$linesep${Z_BASH_PROMPT}${ret_status}> ${normal}"
 }
+
+# if [ "$ZLIB_BASH_SHOW_MOUNT_DRIVES" == "true" ] && [ -f "$HOME/.filedrives" ]; then
+#     mount_file_drives "$(cat "$HOME/.filedrives")"
+# fi
 
 safe_append_prompt_command prompt_command

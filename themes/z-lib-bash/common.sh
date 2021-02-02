@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-: "${ZLIB_BASH_GIT_BRANCH_REGEX:="## ([a-zA-Z0-9].*?)[.]{3}"}"
+: "${ZLIB_BASH_GIT_BRANCH_REGEX:="^[ ]*##[ ]*([a-zA-Z0-9].*?)[.]{3}|^[ ]*##[ ]*([a-zA-Z0-9]*?)$"}"
 : "${ZLIB_BASH_GIT_TRIM_REGEX:="^\s*(.*?)\s*$"}"
 
 if [ -z "$ZLIB_BASH_HAS_GIT_EXE" ]; then
@@ -20,6 +20,15 @@ function git_use_exec() {
     fi
     printf "%s" "false"
     return 1
+}
+
+function assert() {
+    local code="$1"
+    shift
+    if [ "$code" -ne 0 ]; then
+        echo >&2 "[Error]" "$@"
+    fi
+    return $?
 }
 
 function git_command_with_wsl() {
@@ -94,6 +103,8 @@ function parse_git_info() {
     [[ "$info" =~ $ZLIB_BASH_GIT_BRANCH_REGEX ]]
     local ref="${BASH_REMATCH[1]}"
 
+    : "${ref:="??"}"
+
     local info_lines="$(get_lines_in_string "$info")"
     local status="clear"
     if [ "$info_lines" -gt 1 ]; then
@@ -127,4 +138,32 @@ function git_prompt() {
     fi
 
     printf "%s" "${SCM_THEME_PROMPT_PREFIX}${ref}${status}${SCM_THEME_PROMPT_SUFFIX}"
+}
+
+function mount_file_drives() {
+    if [ "$#" -eq 0 ]; then return; fi
+
+    if [ "$#" -eq 1 ]; then
+        drives=($@)
+        mount_file_drives "${drives[@]}"
+        return $?
+    fi
+
+    while [ "$#" -gt 0 ]; do
+        local src="$1"
+        shift
+        local dest="$1"
+        shift
+        [ -n "$src" ]
+        assert $? "Source must be defined" || return $?
+
+        [ -n "$dest" ]
+        assert $? "destination must be defined" || return $?
+
+        if [ -z "$(mount | grep "$dest")" ]; then
+            echo "zlib-bash: Mounting $src -> $dest"
+            mount "$src" "$dest"
+            assert $? "Failed to mount (check folder & permissions)"
+        fi
+    done
 }

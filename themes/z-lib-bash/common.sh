@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-: "${ZLIB_BASH_GIT_BRANCH_REGEX:="^[ ]*##[ ]*([a-zA-Z0-9].*?)[.]{3}|^[ ]*##[ ]*([a-zA-Z0-9]*?)$"}"
+: "${ZLIB_BASH_GIT_BRANCH_REGEX:="^[ ]*##[ ]*([a-zA-Z0-9].*?)$"}"
+: "${ZLIB_BASH_GIT_REMOTE_BRANCH_SPLIT:="(.*?)[.]{3}.*$"}"
 : "${ZLIB_BASH_GIT_TRIM_REGEX:="^\s*(.*?)\s*$"}"
 
 if [ -z "$ZLIB_BASH_HAS_GIT_EXE" ]; then
@@ -8,6 +9,19 @@ if [ -z "$ZLIB_BASH_HAS_GIT_EXE" ]; then
         ZLIB_BASH_HAS_GIT_EXE=1
     fi
 fi
+
+function regex_match() {
+    local regex="$1"
+    local val="$2"
+    local idx="$3"
+    [[ "$val" =~ $regex ]]
+    if [ -n "$idx" ]; then
+        printf "%s" "${BASH_REMATCH[idx]}"
+    else
+        echo "${BASH_REMATCH[@]}"
+    fi
+
+}
 
 function git_use_exec() {
     if [ $ZLIB_BASH_HAS_GIT_EXE -eq 1 ]; then
@@ -42,12 +56,7 @@ function git_command_with_wsl() {
 }
 
 function trim_str() {
-    local txt="$1"
-    if [[ "$txt" =~ $ZLIB_BASH_GIT_TRIM_REGEX ]]; then
-        echo "${BASH_REMATCH[1]}"
-    else
-        return 1
-    fi
+    regex_match "$ZLIB_BASH_GIT_TRIM_REGEX" "$1" 1
 }
 
 function join_non_empty_str() {
@@ -100,8 +109,11 @@ function get_lines_in_string() {
 
 function parse_git_info() {
     local info="$1"
-    [[ "$info" =~ $ZLIB_BASH_GIT_BRANCH_REGEX ]]
-    local ref="${BASH_REMATCH[1]}"
+    local ref="$(regex_match "$ZLIB_BASH_GIT_BRANCH_REGEX" "$info" 1)"
+    ref_just_branch="$(regex_match "$ZLIB_BASH_GIT_REMOTE_BRANCH_SPLIT" "$ref" 1)"
+    if [ -n "$ref_just_branch" ]; then
+        ref="$ref_just_branch"
+    fi
 
     : "${ref:="??"}"
 

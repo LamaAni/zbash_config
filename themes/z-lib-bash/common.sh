@@ -24,7 +24,7 @@ function regex_match() {
 }
 
 function git_use_exec() {
-    : "${ZLIB_BASH_HAS_GIT_EXE:=0}"
+    : "${ZLIB_BASH_HAS_GIT_EXE:=1}"
     if [ "$ZLIB_BASH_HAS_GIT_EXE" -eq 1 ]; then
         case "$PWD" in
         /mnt/?/*)

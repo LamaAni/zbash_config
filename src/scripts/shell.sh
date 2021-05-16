@@ -12,9 +12,9 @@ USAGE: join_by [sep] [values..]
   shift
   local joined=""
   while [ $# -gt 1 ]; do
-    if [ -z "$1" ]; then 
+    if [ -z "$1" ]; then
       shift
-      continue; 
+      continue
     fi
     joined="$joined$1$sep"
     shift
@@ -23,15 +23,7 @@ USAGE: join_by [sep] [values..]
   printf "%s" "$joined"
 }
 
-function colorize() {
-  local color="$1"
-  shift
-  printf "%s" "$color"
-  printf "%s" "$@"
-  printf "%s" $'\e[0m'
-}
-
-function create_show_param() {
+function zbash_config_create_show_param() {
   local show_type="$1"
   shift
   local what="$1"
@@ -48,7 +40,7 @@ function create_show_param() {
   local color="${!color_env}"
   : "${color:=$'\e[0m'}"
 
-  colorize "$color" "$prefex$what"
+  zbash_config_colorzie "$color" "$prefex$what"
 }
 
 function prompt_command() {
@@ -62,6 +54,7 @@ function prompt_command() {
   local user_print=""
   local print_venv=""
   local print_git=""
+  local prompt_git_status=""
   local line_marker="$ZBASH_CONFIG_COMMAND_LINE_MARKER"
 
   : "${auto_append_hist:="true"}"
@@ -79,20 +72,22 @@ function prompt_command() {
     history -a
   fi
 
-  clock_print="$(create_show_param CLOCK "$(prompt_clock)")"
-  path_print="$(create_show_param PATH "$(prompt_path)")"
-  hostname_print="$(create_show_param HOSTNAME "\h")"
-  user_print="$(create_show_param USER "\u")"
-  print_venv="$(create_show_param VENV "$(prompt_venv)")"
+  clock_print="$(zbash_config_create_show_param CLOCK "$(prompt_clock)")"
+  path_print="$(zbash_config_create_show_param PATH "$(prompt_path)")"
+  hostname_print="$(zbash_config_create_show_param HOSTNAME "\h")"
+  user_print="$(zbash_config_create_show_param USER "\u")"
+  print_venv="$(zbash_config_create_show_param VENV "$(prompt_venv)")"
 
   # Since git is a slow command. IF not shouwn then ignore.
   if [ "$ZBASH_CONFIG_SHOW_GIT_BRANCH" != "false" ]; then
-    print_git="$(create_show_param GIT_BRANCH "$(prompt_git)")"
+    print_git="$(zbash_config_create_show_param GIT_BRANCH "$(prompt_git)")"
+    prompt_git_status="$(zbash_config_create_show_param GIT_BRANCH_STATUS "$(prompt_git_status)")"
   fi
 
   local print_args=(
     "$clock_print"
     "$print_venv"
+    "$prompt_git_status"
     "$print_git"
     "$core_print"
     "$path_print"

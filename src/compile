@@ -1,0 +1,16 @@
+#!/bin/bash
+CUR_PATH="$(dirname "${BASH_SOURCE[0]}")"
+
+source "$CUR_PATH/scripts/external.sh"
+
+load_zbash_commons || exit $?
+
+LOAD_FILES=($(find $CUR_PATH/scripts -type f -name '*.sh'))
+
+COMPILED_SCRIPT_PARTS=()
+for fpath in "${LOAD_FILES[@]}"; do
+    COMPILED_SCRIPT_PARTS+=("$(cat "$fpath")")
+done
+
+COMPILED_SCRIPT="$(join_by $'\n' "${COMPILED_SCRIPT_PARTS[@]}")"
+echo "$COMPILED_SCRIPT"

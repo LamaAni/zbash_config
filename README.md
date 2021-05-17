@@ -1,18 +1,17 @@
-# zlib-shell-config
+# A bash shell configuration with helpers and git status
 
-A bash shell config. This is my favorite bash config that
-uses oh-my-bash to display the shell terminal and add completions and other goodies.
-
+A bash shell config. This is my fav configuration which takes into account also wsl.
 Feel free to try it out :)
 
 # Install
 
 The following script install the master version.
 
-#### Requires:
-
-1. Git
 
 ```shell
-curl -sL https://raw.githubusercontent.com/LamaAni/zlib-bash-config/master/src/git_install | bash
+curl -sL https://raw.githubusercontent.com/LamaAni/zbash_config/master/install | sudo bash
 ```
+
+# Requires:
+
+1. Git

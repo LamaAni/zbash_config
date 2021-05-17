@@ -15,6 +15,8 @@ function zbash_config_configure_core_bash() {
 
   # Recommended by ununtu.
   [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)" # make less more friendly for non-text input files, see lesspipe(1)
+
+  return 0
 }
 
 function zbash_config_configure_history() {

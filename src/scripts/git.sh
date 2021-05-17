@@ -23,6 +23,13 @@ function zbash_config_get_git_command_path() {
   printf "%s" "$ZBASH_CONFIG_GIT_COMMAND_PATH"
 }
 
+function zbash_config_is_git_repository() {
+  if [ -d "$PWD/.git" ]; then
+    return 0
+  fi
+  return 1
+}
+
 function zbash_config_fast_git() {
   local git_cmd="$(zbash_config_get_git_command_path)"
   "$git_cmd" "$@"

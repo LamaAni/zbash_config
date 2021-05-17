@@ -1,7 +1,8 @@
 #!/bin/bash
 
 function zbash_config_configure() {
-  zbash_config_configure_core_bash &&
+  zbash_config_load_home_envs &&
+    zbash_config_configure_core_bash &&
     zbash_config_configure_completions &&
     zbash_config_configure_aliases || return $?
 }
@@ -57,4 +58,10 @@ function zbash_config_configure_aliases() {
   alias grep='grep --color=auto'
   alias fgrep='fgrep --color=auto'
   alias egrep='egrep --color=auto'
+}
+
+function zbash_config_configure_home_envs() {
+  if [ -f "$HOME/.env" ]; then
+    source "$HOME/.env"
+  fi
 }

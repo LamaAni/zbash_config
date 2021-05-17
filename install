@@ -1,134 +1,108 @@
-#!/usr/bin/env bash
-: "${LIB_PATH:="$(dirname ${BASH_SOURCE[0]})"}"
-set -e
-
-SHELL_IS_INTERACTIVE=0
-if [ -t 0 ]; then
-  SHELL_IS_INTERACTIVE=1
+#!/bin/bash
+type curl >&2
+if [ $? -ne 0 ]; then
+  echo "Curl must be installed"
 fi
-
-function log_core() {
-  local prefex="$1"
-  shift
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')]][$prefex]" "$@"
-}
-
-function log() {
-  log_core INFO "$@"
-}
 
 function assert() {
-  local error_code="$1"
+  local code="$1"
   shift
-  if [ "$error_code" -ne 0 ]; then
-    log_core ERROR "$@"
-    return "$error_code"
+  if [ "$code" -ne 0 ]; then
+    echo "ERROR: " "$@"
   fi
+  return "$code"
 }
 
-function get_yes_no() {
-  if [ $SHELL_IS_INTERACTIVE -eq 0 ]; then
-    export REPLY="y"
-    return 0
+HELP="
+Installs the zbash-config library
+USAGE: [version]
+INPUTS:
+  version     The version to use. Defautls to latest.
+ARGS:
+  --location  Install into a specific location.
+"
+
+INSTALL_LOCATION="/usr/local/bin/zbash_config"
+RUN_INSTALL="true"
+
+while [ "$#" -gt 0 ]; do
+  case $1 in
+  -h | --help)
+    echo "$HELP"
+    exit 0
+    ;;
+  -l | --location)
+    shift
+    INSTALL_LOCATION="$1"
+    ;;
+  --skip-install)
+    RUN_INSTALL="false"
+    ;;
+  -*)
+    assert 2 "Invalid argument: $1"
+    ;;
+  *)
+    : "${positional:=0}"
+    case $positional in
+    0)
+      VERSION="$1"
+      ;;
+    *)
+      assert 2 "Invalid input: $1" || return $?
+      ;;
+    esac
+    positional=$((positional + 1))
+    ;;
+  esac
+  shift
+done
+
+: "${VERSION:="latest"}"
+
+TEMP_DOWNLOAD_PATH="$(mktemp)"
+REPO_SUBPATH="LamaAni/zbash-config"
+
+function install_lib() {
+  URL_BRANCH="$VERSION"
+  if [ "$URL_BRANCH" == "latest" ]; then
+    URL_BRANCH="master"
   fi
-  while true; do
-    read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[YyNn]$ ]]; then
-      assert 3 "Input invalid: you must specify y or n."
-      continue
+  GET_SCRIPT_URL="https://raw.githubusercontent.com/$REPO_SUBPATH/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
+  echo "$GET_SCRIPT_URL"
+  curl -sL "$GET_SCRIPT_URL" | bash -s "$VERSION" >|"$TEMP_DOWNLOAD_PATH"
+  assert $? "Failed to download zbash_config compiled script" || return $?
+
+  source "$TEMP_DOWNLOAD_PATH"
+  assert $? "Failed to load zbash_config script, error in script?" || return $?
+
+  log:sep "Installing zbash-config as $(whoami)"
+  log "Checking required premissions"
+  if [ "$(whoami)" != "root" ]; then
+    log "checking if sudo is available..."
+    type sudo >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      warn 2 "Sudo not found. Attempting to install with user $(whoami)"
     else
-      export REPLY
-      if [[ $REPLY =~ ^[Yy]$ ]]; then
-        return 0
-      else
-        return 1
-      fi
+      assert 2 "Sudo found, please rerun as root" || return $?
     fi
-  done
+  fi
+
+  if [ -f "$INSTALL_LOCATION" ]; then
+    rm -rf "$INSTALL_LOCATION"
+    assert $? "Failed to remove old code" || return $?
+  fi
+
+  log "Downloading.."
+
+  cat "$TEMP_DOWNLOAD_PATH" >"$INSTALL_LOCATION" && chmod +x "$INSTALL_LOCATION"
+  log "Installed OK -> $INSTALL_LOCATION ($(wc -l $INSTALL_LOCATION) lines)"
 }
 
-: ${OSH:="$HOME/.oh-my-bash"}
-: ${OSH_CUSTOM:="$OSH/custom"}
-
-if [ $SHELL_IS_INTERACTIVE -ne 0 ]; then
-  log "Working in non interactive shell"
-else
-  log "Working in interactive shell"
-fi
-
-log "Looking for oh-my-bash @ $OSH"
-
-# check for oh_my_bash
-if [ ! -d "$OSH" ]; then
-  log "The script requires the installation of oh_my_bash @ ~/.oh_my_bash, repo not found."
-  get_yes_no "Would you like to install oh-my-bash now? (requires git, curl) [y/n] "
-else
-  # Install script for bash configuration.
-  log "This package installs the zlib/bash-config. This script will alter the current configuration of oh_my_bash, and augment .bashrc"
-  get_yes_no "Are you sure?"
-fi
-
-assert $? "Aborted" || exit $?
-
-if [ -d "$OSH" ]; then
-  rm -Rf "$OSH"
-  assert $? "Failed to remove $OSH" || exit $?
-fi
-
-log "Cloning remote repo.."
-log "Installing oh-my-bash.. (skipping bash terimal - will be executed later)"
-OH_MY_BASH_INSTALL=$(curl -fsSL "https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh")
-OH_MY_BASH_INSTALL=$(echo "$OH_MY_BASH_INSTALL" | sed -e "s/exec bash; source \\\$HOME\\/[.]bashrc//g")
-
-bash -c "$OH_MY_BASH_INSTALL"
-assert $? "Failed to install oh-my-bash, aborting" || exit $?
-
-OSH_CUSTOM_THEMES="$OSH_CUSTOM/themes"
-themes_src=$(realpath $LIB_PATH/../themes)
-
-log "Linking themes to $OSH_CUSTOM_THEMES"
-for d in $themes_src/*/; do
-  target_name="$OSH_CUSTOM_THEMES/$(basename $d)"
-  log "Linking $d -> $target_name"
-  ln -sf "$d" "$target_name"
-done
-
-OSH_CUSTOM_ALIASES="$OSH_CUSTOM/aliases"
-aliases_src=$(realpath $LIB_PATH/../aliases)
-log "Linking aliases to $OSH_CUSTOM_ALIASES"
-for f in $aliases_src/*; do
-  target_name="$OSH_CUSTOM_ALIASES/$(basename $f)"
-  log "Linking $f -> $target_name"
-  ln -sf "$f" "$target_name"
-done
-
-BASHRC_PATH="$HOME/.bashrc"
-log "Augmenting bashrc @ $BASHRC_PATH"
-
-function update_bashrc() {
-  local call_command="
-# adding zlib aliases
-aliases+=(z-lib-config)
-
-source \$OSH/oh-my-bash.sh  
-"
-
-  sed -i 's/^\s*source .OSH.*$/# OSH command transffered to end/g' "$BASHRC_PATH" &&
-    sed -i 's/^\s*OSH_THEME=.*$/export OSH_THEME="z-lib-bash"/g' "$BASHRC_PATH" &&
-    echo "$call_command" >>"$BASHRC_PATH"
-  assert $? "Failed to replace expressions"
+function cleanup() {
+  local code=$?
+  rm -rf "$TEMP_DOWNLOAD_PATH"
+  assert "$@" || return $?
 }
 
-update_bashrc
-assert $? "could not augment bashrc" || exit 1
-log "Done."
-
-VALIDATE_CHANGED=$(cat ~/.bashrc | grep "OSH_THEME")
-if [ "$VALIDATE_CHANGED" == 'OSH_THEME="font"' ]; then
-  assert 1 "ERROR: Failed to replace osh theme" || exit $?
-fi
-
-log "Complete. Enter a new bash terminal to see the result using:
-$> bash
-"
+install_lib && install_bashrc
+cleanup $? "Failed to install" || exit $?

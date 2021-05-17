@@ -1,103 +1,20 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/bash
+VERSION="$1"
+: "${VERSION:="latest"}"
 
-SHELL_IS_INTERACTIVE=0
-if [ -t 0 ]; then
-  SHELL_IS_INTERACTIVE=1
-fi
+REPO_RAW_URL="https://github.com/LamaAni/zbash-config"
 
-function log_core() {
-  local prefex="$1"
-  shift
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')]][$prefex]" "$@"
-}
-
-function log() {
-  log_core INFO "$@"
-}
-
-function assert() {
-  local error_code="$1"
-  shift
-  if [ "$error_code" -ne 0 ]; then
-    log_core ERROR "$@"
-    return "$error_code"
-  fi
-}
-
-function get_yes_no() {
-  if [ $SHELL_IS_INTERACTIVE -eq 0 ]; then
-    export REPLY="y"
-    return 0
-  fi
-  while true; do
-    read -p "$LOG_PREFEX$1 [y/n]: " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[YyNn]$ ]]; then
-      assert 3 "Input invalid: you must specify y or n."
-      continue
-    else
-      export REPLY
-      if [[ $REPLY =~ ^[Yy]$ ]]; then
-        return 0
-      else
-        return 1
-      fi
-    fi
-  done
-}
-
-: "${ZLIB_BRANCH:="master"}"
-: "${ZLIB_LOCATION:="$HOME/.zlib_bash_config"}"
-
-while [ "$#" -gt 0 ]; do
-  case $1 in
-  -h | --help)
-    echo "
-Installs the zlib-bash-config, by cloning the repo:
-ARGS:
-  --branch | -b   The branch to clone from (defaults to master)
-  --location | -l The folder to install to (defaults to $ZLIB_LOCATION)
-"
-    ;;
-  -b | --branch)
-    shift
-    ZLIB_BRANCH="$1"
-    ;;
-  --location | -l)
-    shift
-    ZLIB_LOCATION="$1"
-    ;;
-  -*)
-    assert 2 "Unknown option $1" || exit $?
-    ;;
-  *)
-    assert 2 "Unsupported input $1" || exit $?
-    ;;
-  esac
-  shift
-done
-
-if [ $SHELL_IS_INTERACTIVE -ne 0 ]; then
-  log "Working in non interactive shell"
+if [ "$VERSION" != "latest" ]; then
+  URL="$REPO_RAW_URL/releases/download/$VERSION"
 else
-  log "Working in interactive shell"
+  URL="$REPO_RAW_URL/releases/latest/download"
 fi
 
-# check for oh_my_bash
-if [ -d "$ZLIB_LOCATION" ]; then
-  get_yes_no "The location $ZLIB_LOCATION exist, would you like to overwrite (all will be deleted)? [y/n]"
-  assert $? "Aborted" || exit $?
+URL="$URL/zbash_config.sh?v_$(date +"%S")=$RANDOM"
 
-  rm -Rf "$ZLIB_LOCATION"
-  assert $? "Failed to remove existing location" || exit $?
+SCRIPT="$(curl -sL "$URL")"
+if [ "$SCRIPT" == "Not Found" ]; then
+  echo 1>&2 "Cloud not find script @ $URL"
+  exit 1
 fi
-
-type git &>/dev/null
-assert $? "Git must be installed" || exit $?
-
-git clone "https://github.com/LamaAni/zlib-bash-config.git" "$ZLIB_LOCATION" --branch "$ZLIB_BRANCH"
-assert $? "Failed to clone repository" || exit $?
-
-"$ZLIB_LOCATION/src/install"
-assert $? "Failed to install" || exit $?
+printf "%s" "$SCRIPT"

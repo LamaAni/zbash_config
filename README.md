@@ -5,7 +5,7 @@ Feel free to try it out :)
 
 # Install
 
-The following script install the master version.
+The following script install the latest version.
 
 
 ```shell

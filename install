@@ -1,5 +1,5 @@
 #!/bin/bash
-type curl >&2
+type curl >/dev/null
 if [ $? -ne 0 ]; then
   echo "Curl must be installed"
 fi
@@ -60,7 +60,7 @@ done
 : "${VERSION:="latest"}"
 
 TEMP_DOWNLOAD_PATH="$(mktemp)"
-REPO_SUBPATH="LamaAni/zbash-config"
+REPO_SUBPATH="LamaAni/zbash_config"
 
 function install_lib() {
   URL_BRANCH="$VERSION"

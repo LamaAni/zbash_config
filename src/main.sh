@@ -7,9 +7,7 @@ function zbash_config_run_command() {
   load_zbash_commons
 
   HELP="
-Build and upload the docker image. 
-
-USAGE: zbsh-config [command] [.bashrc file]
+USAGE: zbash_config [command] [.bashrc file]
 COMMAND:
   install           Install the config @ the specified .bashrc file. (Or the end of any other bash file). Defaults to COMMAND.
   configure-shell   Called from .bashrc to configure the shell. (Do not call directly)

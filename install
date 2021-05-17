@@ -4,14 +4,18 @@ if [ $? -ne 0 ]; then
   echo "Curl must be installed"
 fi
 
-function assert() {
-  local code="$1"
-  shift
-  if [ "$code" -ne 0 ]; then
-    echo "ERROR: " "$@"
+type assert &>/dev/null
+if [ $? -ne 0 ] || [ "$ZBASH_COMMONS_LIB_LOADED" != "true" ]; then
+  type zbash_commons &>/dev/null
+  if [ $? -ne 0 ]; then
+    echo "[DOWNLOAD] Downloading zbash_commons from latest release.." 1>&2
+    ZBASH_COMMONS_GET_SCRIPT="$(curl -Ls "https://raw.githubusercontent.com/LamaAni/zbash-commons/master/get?ts_$(date +%s)=$RANDOM")"
+    ZBASH_COMMONS="$(bash -c "$ZBASH_COMMONS_GET_SCRIPT")"
+    eval "$ZBASH_COMMONS"
+  else
+    source zbash_commons
   fi
-  return "$code"
-}
+fi
 
 HELP="
 Installs the zbash-config library
@@ -23,7 +27,6 @@ ARGS:
 "
 
 INSTALL_LOCATION="/usr/local/bin/zbash_config"
-RUN_INSTALL="true"
 
 while [ "$#" -gt 0 ]; do
   case $1 in
@@ -34,9 +37,6 @@ while [ "$#" -gt 0 ]; do
   -l | --location)
     shift
     INSTALL_LOCATION="$1"
-    ;;
-  --skip-install)
-    RUN_INSTALL="false"
     ;;
   -*)
     assert 2 "Invalid argument: $1"
@@ -63,19 +63,7 @@ TEMP_DOWNLOAD_PATH="$(mktemp)"
 REPO_SUBPATH="LamaAni/zbash_config"
 
 function install_lib() {
-  URL_BRANCH="$VERSION"
-  if [ "$URL_BRANCH" == "latest" ]; then
-    URL_BRANCH="master"
-  fi
-  GET_SCRIPT_URL="https://raw.githubusercontent.com/$REPO_SUBPATH/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
-  echo "$GET_SCRIPT_URL"
-  curl -sL "$GET_SCRIPT_URL" | bash -s "$VERSION" >|"$TEMP_DOWNLOAD_PATH"
-  assert $? "Failed to download zbash_config compiled script" || return $?
-
-  source "$TEMP_DOWNLOAD_PATH"
-  assert $? "Failed to load zbash_config script, error in script?" || return $?
-
-  log:sep "Installing zbash-config as $(whoami)"
+  log:sep "Check install context"
   log "Checking required premissions"
   if [ "$(whoami)" != "root" ]; then
     log "checking if sudo is available..."
@@ -87,12 +75,24 @@ function install_lib() {
     fi
   fi
 
+  log:sep "Prepare temp files"
+
+  URL_BRANCH="$VERSION"
+  if [ "$URL_BRANCH" == "latest" ]; then
+    URL_BRANCH="master"
+  fi
+
+  GET_SCRIPT_URL="https://raw.githubusercontent.com/$REPO_SUBPATH/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
+  log:info "Downloading $GET_SCRIPT_URL"
+  curl -sL "$GET_SCRIPT_URL" | bash -s "$VERSION" >|"$TEMP_DOWNLOAD_PATH"
+  assert $? "Failed to download zbash_config compiled script" || return $?
+
+  log:sep "Installing zbash_config as $(whoami)"
+
   if [ -f "$INSTALL_LOCATION" ]; then
     rm -rf "$INSTALL_LOCATION"
     assert $? "Failed to remove old code" || return $?
   fi
-
-  log "Downloading.."
 
   cat "$TEMP_DOWNLOAD_PATH" >"$INSTALL_LOCATION" && chmod +x "$INSTALL_LOCATION"
   log "Installed OK -> $INSTALL_LOCATION ($(wc -l $INSTALL_LOCATION) lines)"

@@ -1,5 +1,12 @@
 #!/bin/bash
 
+type realpth &>/dev/null
+if [ $? -ne 0 ]; then
+  function realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+  }
+fi
+
 # Main file, used for bash entry.
 
 function zbash_config_run_command() {
@@ -52,11 +59,28 @@ FLAGS:
   [ -f "$BASH_RC_PATH" ]
   assert $? ".bashrc file not found @ $BASH_RC_PATH" || return $?
 
+  local script_path="$(realpath "${BASH_SOURCE[0]}")"
+
+  local init_command="ZBASH_CONFIG_INIT_SCRIPT_ENABLED=true source $script_path configure-shell"
+
+  local already_installed=""
   if [ "$CLEAR_BASH_RC_CONTENT" == 'true' ]; then
     echo "#!$(which bash)" >|"$BASH_RC_PATH"
+  else
+    already_installed="$(cat "$BASH_RC_PATH" | grep "ZBASH_CONFIG_INIT_SCRIPT_ENABLED=")"
   fi
 
-  echo $'\n# INITIALIZE zbash_config\n'"${BASH_SOURCE[0]} configure-shell"$'\n\n' >>"$BASH_RC_PATH"
+  if [ -n "$already_installed" ]; then
+    local BASH_RC_SCRIPT="$(cat $BASH_RC_PATH)"
+    BASH_RC_SCRIPT="$(echo "$BASH_RC_SCRIPT" | sed -E "s/ZBASH_CONFIG_INIT_SCRIPT_ENABLED=.*/<<ZBASH_CONFIG_REPLACE_MARKER>>/gm")"
+    BASH_RC_SCRIPT="${BASH_RC_SCRIPT/<<ZBASH_CONFIG_REPLACE_MARKER>>/$init_command}"
+    echo "$BASH_RC_SCRIPT" >|"$BASH_RC_PATH"
+    # sed -i -E "s/#\s*ZBASH_CONFIG_INIT_SCRIPT_MARKER.*ZBASH_CONFIG_INIT_SCRIPT_MARKER/\{\{REPLACE_ME_MARKER\}\}/g" "$BASH_RC_PATH"
+  else
+    echo "$init_command" >>"$BASH_RC_PATH"
+  fi
+
+  log:info "zbash_config installed. You may need to start a new ternminal (> bash)"
 }
 
 function zbash_config_configure_shell() {

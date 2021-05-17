@@ -1,8 +1,8 @@
 #!/bin/bash
-
 function zbash_config_configure() {
   zbash_config_configure_home_envs &&
     zbash_config_configure_core_bash &&
+    zbash_config_configure_history &&
     zbash_config_configure_completions &&
     zbash_config_configure_aliases || return $?
 }
@@ -10,17 +10,43 @@ function zbash_config_configure() {
 function zbash_config_configure_core_bash() {
   if [ "$ZBASH_CONFIG_CONFIGURE_CORE_BASH" == "false" ]; then return; fi
 
-  # Configure history
-  export HISTCONTROL=ignoreboth # don't put duplicate lines or lines starting with space in the history.
-  shopt -s histappend           # append to the history file, don't overwrite it
-  HISTSIZE=1000                 # lenght of history
-  HISTFILESIZE=2000             # length of history file
-
   # terminal
   shopt -s checkwinsize # Recheck the window size after each command
 
   # Recommended by ununtu.
   [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)" # make less more friendly for non-text input files, see lesspipe(1)
+}
+
+function zbash_config_configure_history() {
+  if [ "$ZBASH_CONFIG_CONFIGURE_HISTORY" == "false" ]; then return; fi
+
+  if [ -z "$HISTFILE" ]; then
+    export HISTFILE=$HOME/.bash_history
+  fi
+
+  # Configure history
+  shopt -s histappend                                    # append to the history file, don't overwrite it
+  shopt -s cmdhist                                       # Save multi-line commands as one command
+  shopt -s histreedit                                    # use readline on history
+  shopt -s lithist                                       # save history with newlines instead of ; where possible
+  shopt -s histverify                                    # load history line onto readline buffer for editing
+  export HISTCONTROL=ignoreboth                          # don't put duplicate lines or lines starting with space in the history.
+  export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear" # Don't record some commands
+  HISTSIZE=1000                                          # lenght of history
+  HISTFILESIZE=2000                                      # length of history file
+
+  # Use standard ISO 8601 timestamp
+  # %F equivalent to %Y-%m-%d
+  # %T equivalent to %H:%M:%S (24-hours format)
+  HISTTIMEFORMAT='%F %T '
+
+  # Enable incremental history search with up/down arrows (also Readline goodness)
+  # Learn more about this here: http://codeinthehole.com/writing/the-most-important-command-line-tip-incremental-hi
+  # bash4 specific ??
+  bind '"\e[A": history-search-backward'
+  bind '"\e[B": history-search-forward'
+  bind '"\e[C": forward-char'
+  bind '"\e[D": backward-char'
 }
 
 function zbash_config_configure_completions() {

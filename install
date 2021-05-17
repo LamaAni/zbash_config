@@ -106,3 +106,5 @@ function cleanup() {
 
 install_lib
 cleanup $? "Failed to install" || exit $?
+
+

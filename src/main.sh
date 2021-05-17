@@ -55,6 +55,8 @@ FLAGS:
   if [ "$CLEAR_BASH_RC_CONTENT" == 'true' ]; then
     echo "#!$(which bash)" >|"$BASH_RC_PATH"
   fi
+
+  echo $'\n# INITIALIZE zbash_config\n'"${BASH_SOURCE[0]} configure-shell"$'\n\n' >>"$BASH_RC_PATH"
 }
 
 function zbash_config_configure_shell() {

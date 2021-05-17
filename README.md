@@ -5,11 +5,10 @@ Feel free to try it out :)
 
 # Install
 
-The following script install the latest version.
-
+The following script install the latest version of the library
 
 ```shell
-curl -sL https://raw.githubusercontent.com/LamaAni/zbash_config/master/install | sudo bash
+curl -sL https://raw.githubusercontent.com/LamaAni/zbash_config/master/install | sudo bash && zbash_config install
 ```
 
 # Requires:

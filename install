@@ -104,5 +104,5 @@ function cleanup() {
   assert "$@" || return $?
 }
 
-install_lib && install_bashrc
+install_lib
 cleanup $? "Failed to install" || exit $?

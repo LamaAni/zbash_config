@@ -2,6 +2,15 @@
 
 : "${ZBASH_CONFIG_COMMAND_LINE_PREFIX:=""}"
 : "${ZBASH_CONFIG_COMMAND_LINE_MARKER:="> "}"
+: "${ZBASH_CONFIG_SHOW_HOSTNAME:="false"}"
+
+function zbash_config_is_internactive() {
+  # If not running interactively, don't do anything
+  case $- in
+  *i*) echo "true" ;;
+  esac
+  echo "false"
+}
 
 function zbash_config_join_by() {
   : "
@@ -43,7 +52,7 @@ function zbash_config_create_show_param() {
   zbash_config_colorzie "$color" "$prefex$what"
 }
 
-function prompt_command() {
+function zbash_config_prompt_command() {
   # This needs to be first to save last command return code
   local last_line_exit_status="$?"
   local linesep="$ZBASH_CONFIG_LINE_SEPERATOR"
@@ -96,6 +105,10 @@ function prompt_command() {
   )
 
   PS1="$(zbash_config_join_by ' ' "${print_args[@]}")${linesep}${ZBASH_CONFIG_COMMAND_LINE_PREFIX}${line_marker}${ZBASH_CONFIG_COLOR_COMMAND_LINE}"
+}
 
-  # PS1="$(join_non_empty_str " " "${print_args[@]}")$linesep${ZBASH_CONFIG_COI_PREFIX}${ret_status}> ${ZBASH_CONFIG_COLOR_COMMAND_LINE}"
+function zbash_config_set_prompt_command() {
+  local prompt_command="$1"
+  :"${prompt_command:="zbash_config_prompt_command"}"
+  PROMPT_COMMAND="$prompt_command"
 }

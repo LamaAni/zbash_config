@@ -2,7 +2,7 @@
 
 # Main file, used for bash entry.
 
-function __run_config_as_command() {
+function zbash_config_run_command() {
   # Loading helper methods.
   load_zbash_commons
 
@@ -58,8 +58,17 @@ FLAGS:
   fi
 }
 
+function zbash_config_run_bashrc() {
+  if [ "$(zbash_config_is_internactive)" == "false" ] && [ "$ZBASH_CONFIG_LOAD_ALWAYS" != "true" ]; then
+    return 0
+  fi
+  zbash_config_configure &&
+    zbash_config_set_prompt_command || return $?
+
+}
+
 if [ "$1" != "load_library" ]; then
-  __run_config_as_command "$@" || exit $?
+  zbash_config_run_command "$@" || exit $?
 else
-  confgure_environment || exit $?
+  zbash_config_run_bashrc || exit $?
 fi

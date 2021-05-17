@@ -11,7 +11,8 @@ Build and upload the docker image.
 
 USAGE: zbsh-config [command] [.bashrc file]
 COMMAND:
-  install   Install the config @ the specified .bashrc file. (Or the end of any other bash file). Defaults to COMMAND.
+  install           Install the config @ the specified .bashrc file. (Or the end of any other bash file). Defaults to COMMAND.
+  configure-shell   Called from .bashrc to configure the shell. (Do not call directly)
 INPUT:
   [.bashrc file]  The bash rc file to augment. Defaults to BASH_RC_PATH='$HOME/.bashrc'
 FLAGS:
@@ -58,17 +59,22 @@ FLAGS:
   fi
 }
 
-function zbash_config_run_bashrc() {
+function zbash_config_configure_shell() {
   if [ "$(zbash_config_is_internactive)" == "false" ] && [ "$ZBASH_CONFIG_LOAD_ALWAYS" != "true" ]; then
     return 0
   fi
-  zbash_config_configure &&
-    zbash_config_set_prompt_command || return $?
 
+  zbash_config_configure || return $?
+  zbash_config_set_prompt_command || return $?
 }
 
-if [ "$1" != "load_library" ]; then
+function reset_errored_prompt() {
+  export PROMPT_COMMAND=""
+  export PS1="ERROR IN SHELL \h \u>"
+}
+
+if [ "$1" != "configure-shell" ]; then
   zbash_config_run_command "$@" || exit $?
 else
-  zbash_config_run_bashrc || exit $?
+  zbash_config_configure_shell || reset_errored_prompt
 fi

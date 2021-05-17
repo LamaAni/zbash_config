@@ -8,22 +8,18 @@ function zbash_config_configure() {
 
 function zbash_config_configure_core_bash() {
   if [ "$ZBASH_CONFIG_CONFIGURE_CORE_BASH" == "false" ]; then return; fi
-  # Configure history
 
+  # Configure history
   export HISTCONTROL=ignoreboth # don't put duplicate lines or lines starting with space in the history.
   shopt -s histappend           # append to the history file, don't overwrite it
   HISTSIZE=1000                 # lenght of history
   HISTFILESIZE=2000             # length of history file
 
   # terminal
-  shopt -s checkwinsize  # Recheck the window size after each command
-  shopt -s globstar "**" # used in a pathname expansion, match all files and zero or more directories
-
-  # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+  shopt -s checkwinsize # Recheck the window size after each command
 
   # Recommended by ununtu.
-  # make less more friendly for non-text input files, see lesspipe(1)
-  [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+  [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)" # make less more friendly for non-text input files, see lesspipe(1)
 }
 
 function zbash_config_configure_completions() {

@@ -108,7 +108,7 @@ function zbash_config_prompt_command() {
 }
 
 function zbash_config_set_prompt_command() {
-  local prompt_command="$1"
-  :"${prompt_command:="zbash_config_prompt_command"}"
-  PROMPT_COMMAND="$prompt_command"
+  local cmnd_to_run="$1"
+  : "${cmnd_to_run:="zbash_config_prompt_command"}"
+  export PROMPT_COMMAND="$cmnd_to_run"
 }

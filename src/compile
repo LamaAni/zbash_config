@@ -6,6 +6,7 @@ source "$CUR_PATH/scripts/external.sh"
 load_zbash_commons || exit $?
 
 LOAD_FILES=($(find $CUR_PATH/scripts -type f -name '*.sh'))
+LOAD_FILES+=("$CUR_PATH/main.sh")
 
 COMPILED_SCRIPT_PARTS=()
 for fpath in "${LOAD_FILES[@]}"; do

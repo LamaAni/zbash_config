@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function zbash_config_configure() {
-  zbash_config_load_home_envs &&
+  zbash_config_configure_home_envs &&
     zbash_config_configure_core_bash &&
     zbash_config_configure_completions &&
     zbash_config_configure_aliases || return $?

@@ -97,7 +97,7 @@ function reset_errored_prompt() {
   export PS1="ERROR IN SHELL \h \u>"
 }
 
-if [ "$1" != "configure-shell" ]; then
+if [ "$#" -ne 0 ] && [ "$1" != "configure-shell" ]; then
   zbash_config_run_command "$@" || exit $?
 else
   zbash_config_configure_shell || reset_errored_prompt

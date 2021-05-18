@@ -24,10 +24,8 @@ function zbash_config_get_git_command_path() {
 }
 
 function zbash_config_is_git_repository() {
-  if [ -d "$PWD/.git" ]; then
-    return 0
-  fi
-  return 1
+  zbash_config_fast_git status &>/dev/null || return 1
+  return 0
 }
 
 function zbash_config_fast_git() {

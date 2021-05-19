@@ -8,7 +8,7 @@ Feel free to try it out :)
 The following script install the latest version of the library
 
 ```shell
-curl -sL https://raw.githubusercontent.com/LamaAni/zbash_config/master/install | $(which sudo || echo "") bash && zbash_config install
+curl -sL https://raw.githubusercontent.com/LamaAni/zbash_config/master/install | $(which sudo || echo "") bash -s $ZBASH_CONFIG_VERSION && zbash_config install
 ```
 
 # Requires:

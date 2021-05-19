@@ -19,11 +19,16 @@ COMMAND:
   install           Install the config @ the specified .bashrc file. (Or the end of any other bash file). Defaults to COMMAND.
   configure-shell   Called from .bashrc to configure the shell. (Do not call directly)
 INPUT:
-  [.bashrc file]  The bash rc file to augment. Defaults to BASH_RC_PATH='$HOME/.bashrc'
+  [.bashrc file]  The bash rc file to augment. Defaults to BASH_RC_PATH='$HOME/.bash_profile' (mac) or '$HOME/.bashrc' (other)
 FLAGS:
   --clear   Clear any other bashrc contents and replace it with the zbash-config. Defaults to CLEAR_BASH_RC_CONTENT
 "
-  : "${BASH_RC_PATH:="$HOME/.bashrc"}"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    : "${BASH_RC_PATH:="$HOME/.bash_profile"}"
+  else
+    : "${BASH_RC_PATH:="$HOME/.bashrc"}"
+  fi
+
   CLEAR_BASH_RC_CONTENT="false"
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -77,6 +82,9 @@ FLAGS:
     echo "$BASH_RC_SCRIPT" >|"$BASH_RC_PATH"
     # sed -i -E "s/#\s*ZBASH_CONFIG_INIT_SCRIPT_MARKER.*ZBASH_CONFIG_INIT_SCRIPT_MARKER/\{\{REPLACE_ME_MARKER\}\}/g" "$BASH_RC_PATH"
   else
+    if [ ! -f "$BASH_RC_PATH" ]; then
+      touch "$BASH_RC_PATH"
+    fi
     echo "$init_command" >>"$BASH_RC_PATH"
   fi
 

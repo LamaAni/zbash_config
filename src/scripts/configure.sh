@@ -27,15 +27,15 @@ function zbash_config_configure_history() {
   fi
 
   # Configure history
-  shopt -s histappend                                    # append to the history file, don't overwrite it
-  shopt -s cmdhist                                       # Save multi-line commands as one command
-  shopt -s histreedit                                    # use readline on history
-  shopt -s lithist                                       # save history with newlines instead of ; where possible
-  shopt -s histverify                                    # load history line onto readline buffer for editing
+  shopt -s histappend                             # append to the history file, don't overwrite it
+  shopt -s cmdhist                                # Save multi-line commands as one command
+  shopt -s histreedit                             # use readline on history
+  shopt -s lithist                                # save history with newlines instead of ; where possible
+  shopt -s histverify                             # load history line onto readline buffer for editing
   HISTCONTROL=ignoreboth                          # don't put duplicate lines or lines starting with space in the history.
   HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear" # Don't record some commands
-  HISTSIZE=1000                                          # lenght of history
-  HISTFILESIZE=2000                                      # length of history file
+  HISTSIZE=1000                                   # lenght of history
+  HISTFILESIZE=2000                               # length of history file
 
   # Use standard ISO 8601 timestamp
   # %F equivalent to %Y-%m-%d
@@ -82,12 +82,13 @@ function zbash_config_configure_completions() {
 
 function zbash_config_configure_aliases() {
   if [ "$ZBASH_CONFIG_CONFIGURE_ALIASES" == "false" ]; then return; fi
-
-  alias l="ls -la"
-  alias ls='ls --color=auto'
-  alias grep='grep --color=auto'
-  alias fgrep='fgrep --color=auto'
-  alias egrep='egrep --color=auto'
+  if [[ "$OSTYPE" != "darwin"* ]]; then
+    alias l="ls -la"
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+  fi
 }
 
 function zbash_config_configure_home_envs() {

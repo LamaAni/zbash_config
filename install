@@ -82,13 +82,14 @@ function install_lib() {
     URL_BRANCH="master"
   fi
 
+  local get_script=""
   GET_SCRIPT_URL="https://raw.githubusercontent.com/$REPO_SUBPATH/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
   log:info "Downloading $GET_SCRIPT_URL"
-  GET_SCRIPT="$(curl -sL "$GET_SCRIPT_URL")"
+  get_script="$(curl -sL "$GET_SCRIPT_URL")"
   assert $? "Failed to download versioned get script"
 
   log:info "Getting version script"
-  echo "$GET_SCRIPT" | bash -s "$VERSION" >|"$TEMP_DOWNLOAD_PATH"
+  echo "$get_script" | bash -s "$VERSION" >|"$TEMP_DOWNLOAD_PATH"
   assert $? "Failed to download zbash_config compiled script" || return $?
 
   log:sep "Installing zbash_config as $(whoami)"

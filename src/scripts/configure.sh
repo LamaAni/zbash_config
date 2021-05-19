@@ -23,7 +23,7 @@ function zbash_config_configure_history() {
   if [ "$ZBASH_CONFIG_CONFIGURE_HISTORY" == "false" ]; then return; fi
 
   if [ -z "$HISTFILE" ]; then
-    export HISTFILE=$HOME/.bash_history
+    HISTFILE=$HOME/.bash_history
   fi
 
   # Configure history
@@ -32,8 +32,8 @@ function zbash_config_configure_history() {
   shopt -s histreedit                                    # use readline on history
   shopt -s lithist                                       # save history with newlines instead of ; where possible
   shopt -s histverify                                    # load history line onto readline buffer for editing
-  export HISTCONTROL=ignoreboth                          # don't put duplicate lines or lines starting with space in the history.
-  export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear" # Don't record some commands
+  HISTCONTROL=ignoreboth                          # don't put duplicate lines or lines starting with space in the history.
+  HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear" # Don't record some commands
   HISTSIZE=1000                                          # lenght of history
   HISTFILESIZE=2000                                      # length of history file
 
@@ -47,8 +47,10 @@ function zbash_config_configure_history() {
   # bash4 specific ??
   bind '"\e[A": history-search-backward'
   bind '"\e[B": history-search-forward'
-  bind '"\e[C": forward-char'
-  bind '"\e[D": backward-char'
+  bind '"\e[5~": previous-history'
+  bind '"\e[6~": next-history'
+  # bind '"\e[C": forward-char'
+  # bind '"\e[D": backward-char'
 }
 
 function zbash_config_configure_completions() {

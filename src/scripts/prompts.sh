@@ -33,7 +33,7 @@ function prompt_git_status() {
   : "${all_ok_marker:=$'\xE2\x9C\x94'}"
 
   number_of_uncommited_changes=$(zbash_config_fast_git status --porcelain "$@" | wc -l | xargs) || return 0
-  number_of_commited_changes=$(zbash_config_fast_git cherry -v 2>/dev/null | wc -l | xargs) || return 0
+  number_of_commited_changes=$(zbash_config_fast_git cherry -v 2>/dev/ | wc -l | xargs) || return 0
   number_of_changes=$((number_of_commited_changes + number_of_uncommited_changes))
 
   # number_of_changes="$(printf "%02d\n" "$number_of_changes")"
@@ -49,4 +49,3 @@ function prompt_git_status() {
     zbash_config_colorzie "$git_status_color" "$(printf "%02d\n" "$number_of_changes")"
   fi
 }
-

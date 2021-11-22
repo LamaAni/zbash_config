@@ -43,5 +43,5 @@ Usage: git_acp my complicated \"message text\""
   esac
   local msg="$(echo "$@")"
   : "${msg:="Auto commit @ $(date -u +"%Y-%m-%dT%H:%M:%SZ")"}"
-  git add . && git commit -m "$msg" && git push
+  git add . && git commit -m "$msg" --allow-empty && git push
 }

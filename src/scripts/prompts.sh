@@ -25,15 +25,27 @@ function prompt_git() {
 function prompt_git_status() {
   zbash_config_is_git_repository || return 0
 
-  local changed_lines_count=""
+  local number_of_changes=""
+  local number_of_uncommited_changes=""
+  local number_of_commited_changes=""
+
   local all_ok_marker="$ZBASH_COMMONS_GIT_STATUS_ALL_OK_MARKER"
   : "${all_ok_marker:=$'\xE2\x9C\x94'}"
 
-  changed_lines_count="$(zbash_config_fast_git status --porcelain | wc -l)" || return 0
-  # changed_lines_count="$(printf "%02d\n" "$changed_lines_count")"
-  if [ "$changed_lines_count" -eq 0 ]; then
+  number_of_uncommited_changes=$(zbash_config_fast_git status --porcelain "$@" | wc -l | xargs) || return 0
+  number_of_commited_changes=$(zbash_config_fast_git cherry -v 2>/dev/ | wc -l | xargs) || return 0
+  number_of_changes=$((number_of_commited_changes + number_of_uncommited_changes))
+
+  # number_of_changes="$(printf "%02d\n" "$number_of_changes")"
+  if [ "$number_of_changes" -eq 0 ]; then
     zbash_config_colorzie "$ZBASH_CONFIG_COLOR_GIT_STATUS_EMPTY" "$all_ok_marker"
   else
-    zbash_config_colorzie "$ZBASH_CONFIG_COLOR_GIT_STATUS_PENDING" "$(printf "%02d\n" "$changed_lines_count")"
+    local git_status_color=""
+    if [ "$number_of_uncommited_changes" -eq 0 ]; then
+      git_status_color="$ZBASH_CONFIG_COLOR_GIT_STATUS_UNPUSHED"
+    else
+      git_status_color="$ZBASH_CONFIG_COLOR_GIT_STATUS_PENDING"
+    fi
+    zbash_config_colorzie "$git_status_color" "$(printf "%02d\n" "$number_of_changes")"
   fi
 }

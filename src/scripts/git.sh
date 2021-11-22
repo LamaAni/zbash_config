@@ -32,3 +32,16 @@ function zbash_config_fast_git() {
   local git_cmd="$(zbash_config_get_git_command_path)"
   "$git_cmd" "$@"
 }
+
+function git_acp() {
+  case "$1" in
+  -h | --help)
+    echo "Git add commit and push integrated command. 
+Usage: git_acp my complicated \"message text\""
+    return 0
+    ;;
+  esac
+  local msg="$(echo "$@")"
+  : "${msg:="Auto commit @ $(date -u +"%Y-%m-%dT%H:%M:%SZ")"}"
+  git add . && git commit -m "$msg" && git push
+}

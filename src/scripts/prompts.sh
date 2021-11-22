@@ -49,3 +49,4 @@ function prompt_git_status() {
     zbash_config_colorzie "$git_status_color" "$(printf "%02d\n" "$number_of_changes")"
   fi
 }
+

@@ -19,7 +19,14 @@ function prompt_path() {
 function prompt_git() {
   zbash_config_is_git_repository || return 0
 
-  zbash_config_fast_git rev-parse --abbrev-ref HEAD
+  local name=""
+  local tag=""
+  name="$(zbash_config_fast_git rev-parse --abbrev-ref HEAD)" || return $?
+  if [ "$name" == 'HEAD' ]; then
+    tag="$(zbash_config_fast_git tag --points-at HEAD)"
+    [ -n "$tag" ] && name="$tag (tag)"
+  fi
+  echo "$name"
 }
 
 function prompt_git_status() {
@@ -33,7 +40,7 @@ function prompt_git_status() {
   : "${all_ok_marker:=$'\xE2\x9C\x94'}"
 
   number_of_uncommited_changes=$(zbash_config_fast_git status --porcelain "$@" | wc -l | xargs) || return 0
-  number_of_commited_changes=$(zbash_config_fast_git cherry -v 2>/dev/ | wc -l | xargs) || return 0
+  number_of_commited_changes=$(zbash_config_fast_git cherry -v 2>/dev/null | wc -l | xargs) || return 0
   number_of_changes=$((number_of_commited_changes + number_of_uncommited_changes))
 
   # number_of_changes="$(printf "%02d\n" "$number_of_changes")"

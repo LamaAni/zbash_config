@@ -1,6 +1,5 @@
 #!/bin/bash
-
-type realpth &>/dev/null
+type realpath &>/dev/null
 if [ $? -ne 0 ]; then
   function realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
@@ -58,36 +57,35 @@ FLAGS:
     shift
   done
 
+  local script_path=""
+  local init_command=""
+  local newline=$'\n'
+
   [ -n "$COMMAND" ]
   assert $? "Command must be defined" || return $?
 
-  [ -f "$BASH_RC_PATH" ]
-  assert $? ".bashrc file not found @ $BASH_RC_PATH" || return $?
+  # Validating bash rc.
+  [ -f "$BASH_RC_PATH" ] || touch "$BASH_RC_PATH"
 
-  local script_path="$(realpath "${BASH_SOURCE[0]}")"
+  script_path="$(realpath "${BASH_SOURCE[0]}")"
+  assert $? "Failed to find script path" || return $?
 
-  local init_command="ZBASH_CONFIG_INIT_SCRIPT_ENABLED=true source $script_path configure-shell"
+  init_command="ZBASH_CONFIG_INIT_SCRIPT_ENABLED=true source $script_path configure-shell"
 
-  local already_installed=""
+  BASH_RC_SCRIPT="$(cat "$BASH_RC_PATH")"
+  echo "$BASH_RC_SCRIPT" >|"$BASH_RC_PATH.$(date +"%Y_%m_%d_%I_%M_%p").back"
+
   if [ "$CLEAR_BASH_RC_CONTENT" == 'true' ]; then
-    echo "#!$(which bash)" >|"$BASH_RC_PATH"
+    BASH_RC_SCRIPT="#!$(which bash)"
   else
-    already_installed="$(cat "$BASH_RC_PATH" | grep "ZBASH_CONFIG_INIT_SCRIPT_ENABLED=")"
+    # removing the script if any
+    BASH_RC_SCRIPT="$(echo "$BASH_RC_SCRIPT" | grep -v "ZBASH_CONFIG_INIT_SCRIPT_ENABLED=")"
   fi
 
-  if [ -n "$already_installed" ]; then
-    local BASH_RC_SCRIPT="$(cat $BASH_RC_PATH)"
-    BASH_RC_SCRIPT="$(echo "$BASH_RC_SCRIPT" | sed -E "s/ZBASH_CONFIG_INIT_SCRIPT_ENABLED=.*/<<ZBASH_CONFIG_REPLACE_MARKER>>/gm")"
-    BASH_RC_SCRIPT="${BASH_RC_SCRIPT/<<ZBASH_CONFIG_REPLACE_MARKER>>/$init_command}"
-    echo "$BASH_RC_SCRIPT" >|"$BASH_RC_PATH"
-    # sed -i -E "s/#\s*ZBASH_CONFIG_INIT_SCRIPT_MARKER.*ZBASH_CONFIG_INIT_SCRIPT_MARKER/\{\{REPLACE_ME_MARKER\}\}/g" "$BASH_RC_PATH"
-  else
-    if [ ! -f "$BASH_RC_PATH" ]; then
-      touch "$BASH_RC_PATH"
-    fi
-    echo "$init_command" >>"$BASH_RC_PATH"
-  fi
+  BASH_RC_SCRIPT="$BASH_RC_SCRIPT${newline}${init_command}"
 
+  echo "$BASH_RC_SCRIPT" >|"$BASH_RC_PATH"
+  assert $? "Failed to write bashrc script"
   log:info "zbash_config installed. You may need to start a new ternminal (> bash)"
 }
 

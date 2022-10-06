@@ -26,7 +26,7 @@ ARGS:
   --location  Install into a specific location.
 "
 
-INSTALL_LOCATION="/usr/local/bin/zbash_config"
+INSTALL_LOCATION="$HOME/.local/bin"
 
 while [ "$#" -gt 0 ]; do
   case $1 in
@@ -63,18 +63,6 @@ TEMP_DOWNLOAD_PATH="$(mktemp)"
 REPO_SUBPATH="LamaAni/zbash_config"
 
 function install_lib() {
-  log:sep "Check install context"
-  log "Checking required premissions"
-  if [ "$(whoami)" != "root" ]; then
-    log "checking if sudo is available..."
-    type sudo >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      warn 2 "Sudo not found. Attempting to install with user $(whoami)"
-    else
-      assert 2 "Sudo found, please rerun as root" || return $?
-    fi
-  fi
-
   log:sep "Prepare temp files"
 
   URL_BRANCH="$VERSION"
@@ -92,7 +80,10 @@ function install_lib() {
   echo "$get_script" | bash -s "$VERSION" >|"$TEMP_DOWNLOAD_PATH"
   assert $? "Failed to download zbash_config compiled script" || return $?
 
-  log:sep "Installing zbash_config as $(whoami)"
+  log:sep "Installing zbash_config as $(whoami) @ $INSTALL_LOCATION"
+
+  mkdir -p "$INSTALL_LOCATION"
+  assert $? "Failed to validate install location @ $INSTALL_LOCATION"
 
   if [ -f "$INSTALL_LOCATION" ]; then
     rm -rf "$INSTALL_LOCATION"
@@ -107,6 +98,7 @@ function cleanup() {
   local code=$?
   rm -rf "$TEMP_DOWNLOAD_PATH"
   assert "$@" || return $?
+  return $code
 }
 
 install_lib

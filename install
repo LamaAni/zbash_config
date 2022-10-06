@@ -23,10 +23,10 @@ USAGE: [version]
 INPUTS:
   version     The version to use. Defautls to latest.
 ARGS:
-  --location  Install into a specific location.
+  --location  The filepath where to install.
 "
 
-INSTALL_LOCATION="$HOME/.local/bin"
+INSTALL_LOCATION="$HOME/.local/bin/zbash_config"
 
 while [ "$#" -gt 0 ]; do
   case $1 in
@@ -82,7 +82,7 @@ function install_lib() {
 
   log:sep "Installing zbash_config as $(whoami) @ $INSTALL_LOCATION"
 
-  mkdir -p "$INSTALL_LOCATION"
+  mkdir -p "$(dirname "$INSTALL_LOCATION")"
   assert $? "Failed to validate install location @ $INSTALL_LOCATION"
 
   if [ -f "$INSTALL_LOCATION" ]; then

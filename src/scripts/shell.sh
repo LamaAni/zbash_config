@@ -90,6 +90,9 @@ function zbash_config_prompt_command() {
   # Since git is a slow command. IF not shouwn then ignore.
   if [ "$ZBASH_CONFIG_SHOW_GIT_BRANCH" != "false" ]; then
     print_git="$(zbash_config_create_show_param GIT_BRANCH "$(prompt_git)")"
+  fi
+  : "${ZBASH_CONFIG_SHOW_GIT_BRANCH_STATUS:="$ZBASH_CONFIG_SHOW_GIT_BRANCH"}"
+  if [ "$ZBASH_CONFIG_SHOW_GIT_BRANCH_STATUS" != "false" ]; then
     prompt_git_status="$(zbash_config_create_show_param GIT_BRANCH_STATUS "$(prompt_git_status)")"
   fi
 

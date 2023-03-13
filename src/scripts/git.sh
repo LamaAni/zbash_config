@@ -24,7 +24,7 @@ function zbash_config_get_git_command_path() {
 }
 
 function zbash_config_is_git_repository() {
-  zbash_config_fast_git status &>/dev/null || return 1
+  git rev-parse --is-inside-work-tree &>/dev/null || return 1
   return 0
 }
 

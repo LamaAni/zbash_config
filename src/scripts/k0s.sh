@@ -32,6 +32,9 @@ function k0s_install() {
         return 0
     fi
 
+    log:info "Creating kubectl entery"
+    validate_login || return $?
+
     mkdir -p "$KUBE_HOME"
     assert $? "Failed to validate kubectl home @ $KUBE_HOME" || return $?
 
@@ -40,7 +43,6 @@ function k0s_install() {
     cp "$KUBECONFIG" "$kubectl_back_config" && cp "$KUBECONFIG" "$KUBE_HOME/config.zbash.back"
     assert $? "Failed to back up kube config $KUBECONFIG -> $kubectl_back_config" || return $?
 
-    log:info "Creating kubectl entery"
     local config=""
     config="$(sudo k0s kubeconfig admin)" && config="$(echo "$config" | sed -e 's/\bDefault\b/k0s/g' -e 's/\blocal\b/k0s-local/g' -e 's/\buser\b/k0s-user/g')"
     assert $? "Failed to create kubectl entry" || return $?
@@ -63,17 +65,30 @@ function k0s_install() {
 }
 
 function k0s_stop() {
-    log:info "Configuring k0s server"
-    sudo kill "$K0S_PID"
+    log:info "Stopping k0s server"
+
+    [ -f "$K0S_PID" ]
+    assert $? "PID file not found, if k0s server is running, you would need to stop that manually" || return $?
+
+    sudo kill "$(cat "$K0S_PID")"
     assert $? "Failed to kill k0s" || return $?
 
     rm -rf "$K0S_PID"
-    assert $? "Failed to delete k0s pid file" || return $?
+    assert $? "Failed to delete k0s pid file, you may have to manually do that" || return $?
+}
+
+function validate_login() {
+    log:info "$(sudo echo "User authenticaed")"
+    assert $? "Failed to log in, you must run this command as root" || return $?
 }
 
 function k0s_start() {
     [ -f "$K0S_CONFIG" ]
     assert $? "No config file found @ $K0S_CONFIG, please run install first" || return $?
+
+    if [ -f "$K0S_PID" ] && ps -p $(cat $K0S_PID) >/dev/null; then
+        assert 3 "k0s servier is already running @ pid = $(cat $K0S_PID)" || return $?
+    fi
 
     function run_cluster() {
         sudo rm -rf "$K0S_LOG"
@@ -86,18 +101,38 @@ function k0s_start() {
             --enable-worker
         )
         log:info "Starting server with:" "${command[@]}" 1>&2
-        if [ "$k0s_start_RUN_SYNC" == "true" ]; then
+        local
+        if [ "$K0S_START_RUN_SYNC" == "true" ]; then
             sudo "${command[@]}" || return $?
         else
             sudo "${command[@]}" >>"$K0S_LOG" 2>&1 || return $?
         fi
     }
-    run_cluster &
-    echo "$!" >|"$K0S_PID"
+    validate_login || return $?
+    command=(
+        k0s server
+        --config "$K0S_CONFIG"
+        --enable-worker
+    )
+    log:info "Starting server with:" "${command[@]}" 1>&2
+    if [ "$K0S_START_RUN_SYNC" == "true" ]; then
+        sudo "${command[@]}" &
+    else
+        sudo "${command[@]}" >>"$K0S_LOG" 2>&1 &
+    fi
+    local pid="$!"
+
+    echo "$pid" >|"$K0S_PID"
     assert $? "Faile to start and register PID, you must stop the server manually"
 
-    if [ "$k0s_start_RUN_SYNC" == "true" ]; then
-        wait $K0S_PID
+    log:info "Written k0s pid $pid @ $K0S_PID"
+
+    if [ "$K0S_START_RUN_SYNC" == "true" ]; then
+        wait $pid
+        rm -rf "$K0S_PID"
+        assert $? "PID file missing, was it removed elsewhere?"
+    else
+        log:info "Service started"
     fi
 }
 
@@ -122,9 +157,9 @@ FLAGS:
             return 0
             ;;
         --sync)
-            export k0s_start_RUN_SYNC="true"
+            export K0S_START_RUN_SYNC="true"
             ;;
-        install | start)
+        install | start | stop)
             K0S_COMMAND="$1"
             ;;
         *)
@@ -139,9 +174,6 @@ FLAGS:
 
     dump="$(type -t k0s 2>&1)"
     assert $? "k0s command not found, and must be installed in the system" || return $?
-
-    log:info "$(sudo echo "User authenticaed")"
-    assert $? "Failed to log in, you must run this command as root" || exit $?
 
     case "$K0S_COMMAND" in
     start)

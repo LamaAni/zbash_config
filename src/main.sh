@@ -99,7 +99,7 @@ function zbash_config_configure_shell() {
 }
 
 function reset_errored_prompt() {
-  zbash_prompt_COMMAND=""
+  PROMPT_COMMAND=""
   PS1="ERROR IN SHELL \h \u>"
 }
 

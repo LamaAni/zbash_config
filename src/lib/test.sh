@@ -9,6 +9,10 @@ function assert() {
   return $code
 }
 
+function log:info() {
+  echo "[$(date +%Y-%m-%dT%H:%M:%S%z)][zbash][INFO]" "$@"
+}
+
 function zbash_config_test_counts() {
   local counts="$ZBASH_CONFIG_TEST_CYCLE_COUNT"
   : "${counts:="100"}"

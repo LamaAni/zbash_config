@@ -1,17 +1,83 @@
 #!/bin/bash
 CUR_PATH="$(dirname "${BASH_SOURCE[0]}")"
+LIB_PATH="$CUR_PATH/lib"
+SCRITPS_PATH="$CUR_PATH/scripts"
 
-source "$CUR_PATH/scripts/external.sh"
+source "$LIB_PATH/external.sh"
 
 load_zbash_commons || exit $?
 
-LOAD_FILES=($(find $CUR_PATH/scripts -type f -name '*.sh'))
-LOAD_FILES+=("$CUR_PATH/main.sh")
+function get_files_list() {
+    local load_path="$1"
+    if [ -f "$load_path" ]; then
+        echo "$load_path"
+    else
+        find "$load_path" -type f -name '*.sh'
+    fi
+}
 
-COMPILED_SCRIPT_PARTS=()
-for fpath in "${LOAD_FILES[@]}"; do
-    COMPILED_SCRIPT_PARTS+=("$(cat "$fpath")")
-done
+function compile_files_script() {
+    local compiled_script=()
+    log:info "Compiling $# script files" 1>&2
+    for fpath in "$@"; do
+        if [ -z "$fpath" ]; then
+            continue
+        fi
+        log:info "Loading $fpath" 1>&2
+        compiled_script+=("$(cat "$fpath")")
+    done
+    join_by $'\n' "${compiled_script[@]}"
+}
 
-COMPILED_SCRIPT="$(join_by $'\n' "${COMPILED_SCRIPT_PARTS[@]}")"
-echo "$COMPILED_SCRIPT"
+function compile_submenu_scripts() {
+    local load_path="$1"
+    local files=(
+        $(get_files_list "$load_path")
+    )
+    local help=()
+    local script_functions=()
+    local command_list=()
+    local function_name=""
+    local filename=""
+    log:info "Found ${#files[@]} submenu script files" 1>&2
+    for fpath in "${files[@]}"; do
+        log:info "Loading script $fpath" 1>&2
+        filename="$(basename "$fpath")"
+        function_name="$(regexp_replace "[^a-zA-Z0-9_]" "_" "${filename%.*}")"
+        assert $? "Failed to parse function name" || return $?
+        [ -n "$function_name" ]
+        assert $? "Failed to parse function name (empty)" || return $?
+
+        script_functions+=(
+            "function __zbash_script_$function_name(){"
+            "local ___internal_safe_dump=\"\""
+            "$(cat "$fpath")"
+            "}"
+        )
+        local help_text=""
+        help_text="$(regexp_replace "^\s*#-#" "" "$(grep "#-#" "$fpath")")"
+        help_text="$(regexp_replace "\\\"" "'" "$help_text")"
+        assert $? "Failed to parse help text" || return $?
+
+        help+=(
+            "    $function_name"$'\t\t'"$help_text"
+        )
+    done
+
+    local script=(
+        "export ZBASH_SCRIPTS_SUBMENU_COMMANDS_HELP=\"$(join_by $'\n' "$help")\""
+        "function zbash_load_submenu_scripts(){"
+        "local ___internal_safe_dump=\"\""
+        "$(join_by $'\n' "${script_functions[@]}")"
+        "}"
+    )
+
+    join_by $'\n' "${script[@]}"
+}
+
+COMPILED_SCRIPTS=(
+    "$(compile_files_script $(get_files_list "$LIB_PATH") "$CUR_PATH/main.sh")"
+    "$(compile_submenu_scripts "$SCRITPS_PATH")"
+)
+
+join_by $'\n' "${COMPILED_SCRIPTS[@]}"

@@ -63,7 +63,7 @@ function zbash_config_prompt_command() {
   local user_print=""
   local print_venv=""
   local print_git=""
-  local prompt_git_status=""
+  local zbash_prompt_git_status=""
   local line_marker="$ZBASH_CONFIG_COMMAND_LINE_MARKER"
 
   : "${auto_append_hist:="true"}"
@@ -81,25 +81,25 @@ function zbash_config_prompt_command() {
     history -a
   fi
 
-  clock_print="$(zbash_config_create_show_param CLOCK "$(prompt_clock)")"
-  path_print="$(zbash_config_create_show_param PATH "$(prompt_path)")"
+  clock_print="$(zbash_config_create_show_param CLOCK "$(zbash_prompt_clock)")"
+  path_print="$(zbash_config_create_show_param PATH "$(zbash_prompt_path)")"
   hostname_print="$(zbash_config_create_show_param HOSTNAME "\h")"
   user_print="$(zbash_config_create_show_param USER "\u")"
-  print_venv="$(zbash_config_create_show_param VENV "$(prompt_venv)")"
+  print_venv="$(zbash_config_create_show_param VENV "$(zbash_prompt_venv)")"
 
   # Since git is a slow command. IF not shouwn then ignore.
   if [ "$ZBASH_CONFIG_SHOW_GIT_BRANCH" != "false" ]; then
-    print_git="$(zbash_config_create_show_param GIT_BRANCH "$(prompt_git)")"
+    print_git="$(zbash_config_create_show_param GIT_BRANCH "$(zbash_prompt_git)")"
   fi
   : "${ZBASH_CONFIG_SHOW_GIT_BRANCH_STATUS:="$ZBASH_CONFIG_SHOW_GIT_BRANCH"}"
   if [ "$ZBASH_CONFIG_SHOW_GIT_BRANCH_STATUS" != "false" ]; then
-    prompt_git_status="$(zbash_config_create_show_param GIT_BRANCH_STATUS "$(prompt_git_status)")"
+    zbash_prompt_git_status="$(zbash_config_create_show_param GIT_BRANCH_STATUS "$(zbash_prompt_git_status)")"
   fi
 
   local print_args=(
     "$clock_print"
     "$print_venv"
-    "$prompt_git_status"
+    "$zbash_prompt_git_status"
     "$print_git"
     "$core_print"
     "$path_print"
@@ -113,5 +113,5 @@ function zbash_config_prompt_command() {
 function zbash_config_set_prompt_command() {
   local cmnd_to_run="$1"
   : "${cmnd_to_run:="zbash_config_prompt_command"}"
-  PROMPT_COMMAND="$cmnd_to_run"
+  zbash_prompt_COMMAND="$cmnd_to_run"
 }

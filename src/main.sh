@@ -6,9 +6,9 @@ if [ $? -ne 0 ]; then
   }
 fi
 
-# Main file, used for bash entry.
-
 function zbash_config_run_command() {
+  # Main file, used for bash entry.
+
   # Loading helper methods.
   load_zbash_commons
 
@@ -99,7 +99,7 @@ function zbash_config_configure_shell() {
 }
 
 function reset_errored_prompt() {
-  PROMPT_COMMAND=""
+  zbash_prompt_COMMAND=""
   PS1="ERROR IN SHELL \h \u>"
 }
 

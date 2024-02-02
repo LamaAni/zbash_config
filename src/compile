@@ -1,7 +1,7 @@
 #!/bin/bash
 CUR_PATH="$(dirname "${BASH_SOURCE[0]}")"
 
-source "$CUR_PATH/scripts/external.sh"
+source "$CUR_PATH/lib/external.sh"
 
 load_zbash_commons || exit $?
 

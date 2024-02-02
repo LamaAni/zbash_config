@@ -1,22 +1,22 @@
 #!/bin/bash
 
-function prompt_clock() {
+function zbash_prompt_clock() {
   local format="$ZBASH_CONFIG_CLOCK_FORMAT"
   : "${format:="%H:%M"}"
   date +"$format"
 }
 
-function prompt_venv() {
+function zbash_prompt_venv() {
   if [[ -n "$VIRTUAL_ENV" ]]; then
     printf "%s" "$(basename "$VIRTUAL_ENV")"
   fi
 }
 
-function prompt_path() {
+function zbash_prompt_path() {
   printf "%s" "$PWD"
 }
 
-function prompt_git() {
+function zbash_prompt_git() {
   zbash_config_is_git_repository || return 0
 
   local name=""
@@ -29,7 +29,7 @@ function prompt_git() {
   echo "$name"
 }
 
-function prompt_git_status() {
+function zbash_prompt_git_status() {
   zbash_config_is_git_repository || return 0
 
   local number_of_changes=""

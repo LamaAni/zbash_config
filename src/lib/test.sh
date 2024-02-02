@@ -25,7 +25,7 @@ function zbash_config_test_method_call() {
 function zbash_config_test_git_speed() {
   local counts="$(zbash_config_test_counts)"
   echo "Checking $counts times get git branch"
-  time zbash_config_test_method_call prompt_git || return $?
+  time zbash_config_test_method_call zbash_prompt_git || return $?
   echo "Checking $counts times get git status"
-  time zbash_config_test_method_call prompt_git_status || return $?
+  time zbash_config_test_method_call zbash_prompt_git_status || return $?
 }

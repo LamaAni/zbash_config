@@ -4,7 +4,7 @@ function assert() {
   local code="$1"
   shift
   if [ "$code" -ne 0 ]; then
-    echo "[ERROR]" "$@"
+    echo "[$(date +%Y-%m-%dT%H:%M:%S%z)][zbash][ERROR]" "$@"
   fi
   return $code
 }

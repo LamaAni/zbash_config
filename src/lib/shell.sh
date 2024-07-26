@@ -83,8 +83,8 @@ function zbash_config_prompt_command() {
 
   clock_print="$(zbash_config_create_show_param CLOCK "$(zbash_prompt_clock)")"
   path_print="$(zbash_config_create_show_param PATH "$(zbash_prompt_path)")"
-  hostname_print="$(zbash_config_create_show_param HOSTNAME "\h")"
-  user_print="$(zbash_config_create_show_param USER "\u")"
+  hostname_print="$(zbash_config_create_show_param HOSTNAME "\$HOSTNAME")"
+  user_print="$(zbash_config_create_show_param USER "\$USER")"
   print_venv="$(zbash_config_create_show_param VENV "$(zbash_prompt_venv)")"
 
   # Since git is a slow command. IF not shouwn then ignore.

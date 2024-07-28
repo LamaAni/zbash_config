@@ -11,10 +11,14 @@ else
 fi
 
 URL="$URL/zbash_config.sh?v_$(date +"%S")=$RANDOM"
-
+echo "[Downloading] $URL" 1>&2
 SCRIPT="$(curl -sL "$URL")"
+if [ -z "$SCRIPT" ]; then
+  echo 1>&2 "Error when downloading script. Script empty or failed to download."
+  exit 2
+fi
 if [ "$SCRIPT" == "Not Found" ]; then
   echo 1>&2 "Cloud not find script @ $URL"
-  exit 1
+  exit 2
 fi
 printf "%s" "$SCRIPT"

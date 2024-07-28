@@ -21,14 +21,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: "Read commit args"
-        id: args
-        uses: LamaAni/parse-commit-args-action@master
+      # - name: "Read commit args"
+      #   id: args
+      #   uses: LamaAni/parse-commit-args-action@master
 
-      - name: "show args"
-        run: echo "$THE_ARGS"
-        env:
-          THE_ARGS: "${{ toJSON(steps.args.outputs) }}"
+      # - name: "show args"
+      #   run: echo "$THE_ARGS"
+      #   env:
+      #     THE_ARGS: "${{ toJSON(steps.args.outputs) }}"
 
       - name: "Checkout the code"
         uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
         run: bash src/compile >| zbash_config.sh && chmod +x zbash_config.sh
 
       - name: "Release: Upload files"
-        if: ${{ steps.args.outputs.is_release=='true' }}
+        if: github.event_name == 'release'
         uses: AButler/upload-release-assets@v2.0
         with:
           files: "zbash_config.sh"

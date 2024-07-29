@@ -28,6 +28,10 @@ jobs:
         id: compile
         run: bash src/compile >| zbash_config.sh && chmod +x zbash_config.sh
 
+      - name: "Test the code"
+        id: test_code
+        run: zbash_config.sh test
+
       - name: "Release: Upload files"
         if: github.event_name == 'release'
         uses: AButler/upload-release-assets@v2.0

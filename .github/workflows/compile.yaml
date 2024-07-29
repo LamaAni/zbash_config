@@ -30,7 +30,7 @@ jobs:
 
       - name: "Test the code"
         id: test_code
-        run: zbash_config.sh test
+        run: "./zbash_config.sh test"
 
       - name: "Release: Upload files"
         if: github.event_name == 'release'

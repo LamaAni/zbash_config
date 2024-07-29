@@ -17,6 +17,7 @@ USAGE: zbash_config [command] [.bashrc file]
 COMMAND:
   install           Install the config @ the specified .bashrc file. (Or the end of any other bash file). Defaults to COMMAND.
   configure-shell   Called from .bashrc to configure the shell. (Do not call directly)
+  test              Run a basic test of the script compilation.
 INPUT:
   [.bashrc file]  The bash rc file to augment. Defaults to BASH_RC_PATH='$HOME/.bash_profile' (mac) or '$HOME/.bashrc' (other)
 FLAGS:
@@ -63,6 +64,11 @@ FLAGS:
 
   [ -n "$COMMAND" ]
   assert $? "Command must be defined" || return $?
+
+  if [ "$COMMAND" == "test" ]; then
+    echo "Script compilation ok. Script running."
+    return 0
+  fi
 
   # Validating bash rc.
   [ -f "$BASH_RC_PATH" ] || touch "$BASH_RC_PATH"

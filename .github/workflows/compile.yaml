@@ -21,15 +21,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      # - name: "Read commit args"
-      #   id: args
-      #   uses: LamaAni/parse-commit-args-action@master
-
-      # - name: "show args"
-      #   run: echo "$THE_ARGS"
-      #   env:
-      #     THE_ARGS: "${{ toJSON(steps.args.outputs) }}"
-
       - name: "Checkout the code"
         uses: actions/checkout@v2
 
